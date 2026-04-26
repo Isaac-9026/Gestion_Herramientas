@@ -20,6 +20,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/herramientas", require("./routes/herramientas"));
+app.use('/api/productos', require('./routes/productos'));
 
 (async () => {
   try {
