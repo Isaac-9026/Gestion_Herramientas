@@ -210,6 +210,16 @@ VALUES
 (1, 'H-002', 'SER-002', 'BUENO', 1),
 (2, 'H-003', 'SER-003', 'REGULAR', 2);
 
+INSERT INTO proveedores (ruc, razon_social, contacto, telefono, direccion)
+VALUES 
+('20123456789', 'Proveedor Industrial SAC', 'Juan Perez', '999888777', 'Lima');
+
+INSERT INTO personas (dni, nombres) VALUES ('12345678', 'Admin Sistema');
+
+INSERT INTO usuarios (id_persona, username, password_hash)
+VALUES (1, 'admin', '123456');
+
 SHOW TABLES;
 
 SELECT * FROM herramientas;
+SELECT * FROM proveedores;
