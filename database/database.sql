@@ -183,3 +183,33 @@ CREATE TABLE IF NOT EXISTS detalle_prestamo (
     FOREIGN KEY (id_herramienta) REFERENCES herramientas(id_herramienta),
     FOREIGN KEY (id_usuario_receptor) REFERENCES usuarios(id_usuario)
 ) ENGINE=InnoDB;
+
+INSERT INTO marcas (nombre) VALUES
+('Bosch'),
+('Makita'),
+('DeWalt');
+
+INSERT INTO categorias (nombre) VALUES
+('Taladro'),
+('Esmeril'),
+('Martillo');
+
+INSERT INTO productos (nombre, id_marca, id_categoria) VALUES
+('Bosch X100', 1, 1),
+('Makita M9000', 2, 2),
+('DeWalt D200', 3, 3);
+
+INSERT INTO ubicaciones (nombre) VALUES
+('Estante A'),
+('Gabinete B');
+
+INSERT INTO herramientas 
+(id_producto, codigo_inventario, numero_serie, estado, id_ubicacion)
+VALUES
+(1, 'H-001', 'SER-001', 'BUENO', 1),
+(1, 'H-002', 'SER-002', 'BUENO', 1),
+(2, 'H-003', 'SER-003', 'REGULAR', 2);
+
+SHOW TABLES;
+
+SELECT * FROM herramientas;

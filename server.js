@@ -19,7 +19,7 @@ app.get("/", (req, res) => {
   res.send("API gestión de herramientas activa ");
 });
 
-app.use("/api/herramientas", require("./routes/herramientas.routes"));
+app.use("/api/herramientas", require("./routes/herramientas"));
 
 (async () => {
   try {
