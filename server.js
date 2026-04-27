@@ -25,6 +25,7 @@ app.use('/api/compras', require('./routes/compras'));
 app.use('/api/prestamos', require('./routes/prestamos'));
 app.use('/api/personas', require('./routes/personas'));
 app.use('/api/usuarios', require('./routes/usuarios'));
+app.use('/api/proveedores', require('./routes/proveedores'));
 
 (async () => {
   try {
@@ -47,3 +48,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Servidor Web ejecutándose en http://localhost:${PORT}`);
 });
+
+
