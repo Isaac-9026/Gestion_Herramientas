@@ -23,6 +23,7 @@ app.use("/api/herramientas", require("./routes/herramientas"));
 app.use('/api/productos', require('./routes/productos'));
 app.use('/api/compras', require('./routes/compras'));
 app.use('/api/prestamos', require('./routes/prestamos'));
+app.use('/api/personas', require('./routes/personas'));
 
 (async () => {
   try {
