@@ -1,0 +1,48 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Herramientas</h1>
+    <p class="page-subtitle">Gestión de herramientas físicas del inventario</p>
+  </div>
+  <button class="btn-primary-action" id="btnNuevaHerramienta">
+    <i class="bi bi-plus-lg"></i> Nueva Herramienta
+  </button>
+</div>
+
+<div class="search-bar-row">
+  <div class="search-input-wrap">
+    <i class="bi bi-search search-icon"></i>
+    <input type="text" id="searchHerramienta" class="search-input"
+      placeholder="Buscar por código, serie o estado…" />
+  </div>
+
+  <button class="btn-icon-outline" id="btnRefreshHerramientas" title="Recargar">
+    <i class="bi bi-arrow-clockwise"></i>
+  </button>
+</div>
+
+<div class="card-panel">
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Código</th>
+          <th>Serie</th>
+          <th>Estado</th>
+          <th>Disponible</th>
+        </tr>
+      </thead>
+      <tbody id="bodyHerramientas">
+        <tr>
+          <td colspan="5" class="text-center py-5">
+            <div class="spinner-custom"></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <span class="text-muted text-sm" id="totalHerramientasLabel">Cargando…</span>
+  </div>
+</div>
