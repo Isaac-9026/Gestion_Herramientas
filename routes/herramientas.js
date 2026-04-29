@@ -6,7 +6,22 @@ const db = require("../config/db");
 router.get("/", async (req, res) => {
   try {
     const [rows] = await db.query(
-      "SELECT * FROM herramientas ORDER BY id_herramienta DESC"
+      `SELECT 
+        h.id_herramienta,
+        h.codigo_inventario,
+        h.numero_serie,
+        h.estado,
+        h.disponible,
+        p.nombre AS producto, 
+        m.nombre AS marca,
+        c.nombre AS categoria,
+        u.nombre AS ubicacion
+      FROM herramientas h
+      JOIN productos p ON h.id_producto = p.id_producto
+      LEFT JOIN marcas m ON p.id_marca = m.id_marca
+      LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+      LEFT JOIN ubicaciones u ON h.id_ubicacion = u.id_ubicacion
+      ORDER BY h.id_herramienta DESC`
     );
 
     res.json({ success: true, data: rows });
