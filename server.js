@@ -7,14 +7,19 @@ const pool = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-//Middlewares
+app.get("/api/test", (req, res) => {
+  res.json({ ok: true, source: "backend real funcionando" });
+});
+// ─────────────────────────────
+// MIDDLEWARES
+// ─────────────────────────────
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, 'public')));
-
+// ─────────────────────────────
+// APIs PRIMERO (OBLIGATORIO)
+// ─────────────────────────────
 app.use('/api/herramientas', require('./routes/herramientas'));
 app.use('/api/productos', require('./routes/productos'));
 app.use('/api/compras', require('./routes/compras'));
@@ -22,8 +27,24 @@ app.use('/api/prestamos', require('./routes/prestamos'));
 app.use('/api/personas', require('./routes/personas'));
 app.use('/api/usuarios', require('./routes/usuarios'));
 app.use('/api/proveedores', require('./routes/proveedores'));
+app.use('/api/ubicaciones', require('./routes/ubicaciones'));
 
-//DB conexión
+// ─────────────────────────────
+// STATIC DESPUÉS
+// ─────────────────────────────
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ─────────────────────────────
+// SPA FALLBACK (NO TOCAR /api)
+// ─────────────────────────────
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ─────────────────────────────
+// DB CHECK
+// ─────────────────────────────
 (async () => {
   try {
     const conn = await pool.getConnection();
@@ -34,11 +55,9 @@ app.use('/api/proveedores', require('./routes/proveedores'));
   }
 })();
 
-app.get('/{*path}', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-//Error handler 
+// ─────────────────────────────
+// ERROR HANDLER
+// ─────────────────────────────
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({
