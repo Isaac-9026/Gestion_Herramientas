@@ -29,6 +29,81 @@ const HerramientasModule = {
     }
   },
 
+  async openPrestar(id) {
+    try {
+      const herramienta = this.lista.find((h) => h.id_herramienta == id);
+
+      document.getElementById("prestamoHerramientaId").value = id;
+      document.getElementById("prestamoToolInfo").innerText =
+        `${herramienta.producto} (${herramienta.codigo_inventario})`;
+
+      await this._loadPersonas();
+
+      openOverlay("modalPrestarOverlay");
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  async _loadPersonas() {
+    try {
+      const res = await fetch("/api/personas");
+      const data = await res.json();
+
+      const select = document.getElementById("prestamoPersona");
+
+      select.innerHTML =
+        `<option value="">Seleccionar persona</option>` +
+        data.data
+          .map(
+            (p) =>
+              `<option value="${p.id_persona}">
+          ${p.nombres}
+        </option>`,
+          )
+          .join("");
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  async savePrestamo() {
+    const id_herramienta = document.getElementById(
+      "prestamoHerramientaId",
+    ).value;
+    const id_persona = document.getElementById("prestamoPersona").value;
+    const motivo = document.getElementById("prestamoMotivo").value;
+
+    if (!id_persona) {
+      alert("Selecciona una persona");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/prestamos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_persona,
+          id_usuario_despachador: 1,
+          motivo,
+          herramientas: [id_herramienta],
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) throw new Error(data.message);
+
+      closeOverlay("modalPrestarOverlay");
+
+      await this.load();
+
+      alert("Préstamo registrado correctamente");
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  },
   _fillProductos(selected = "") {
     const sel = document.getElementById("hProducto");
     if (!sel) return;
@@ -58,7 +133,7 @@ const HerramientasModule = {
             String(u.id_ubicacion) === String(selected) ? "selected" : ""
           }>
             ${u.nombre}
-          </option>`
+          </option>`,
         )
         .join("");
   },
@@ -158,9 +233,18 @@ const HerramientasModule = {
               onclick="HerramientasModule.confirmDel(${h.id_herramienta}, '${(h.codigo_inventario || "").replace(/'/g, "\\'")}')">
               <i class="bi bi-trash3-fill"></i>
             </button>
+
+             ${
+               h.disponible
+                 ? `<button class="btn-action btn-action-edit"
+           onclick="HerramientasModule.openPrestar(${h.id_herramienta})">
+           <i class="bi bi-box-arrow-up"></i>
+         </button>`
+                 : `<span class="text-muted">En uso</span>`
+             }
           </td>
         </tr>
-      `
+      `,
       )
       .join("");
   },
@@ -223,7 +307,7 @@ const HerramientasModule = {
   async openEdit(id) {
     try {
       const current = this.lista.find(
-        (h) => String(h.id_herramienta) === String(id)
+        (h) => String(h.id_herramienta) === String(id),
       );
 
       const res = await fetch(`/api/herramientas/${id}`);
@@ -283,11 +367,14 @@ const HerramientasModule = {
     };
 
     try {
-      const res = await fetch(isEdit ? `/api/herramientas/${id}` : "/api/herramientas", {
-        method: isEdit ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(
+        isEdit ? `/api/herramientas/${id}` : "/api/herramientas",
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      );
 
       const json = await res.json();
 
@@ -336,7 +423,7 @@ const HerramientasModule = {
         (h.marca || "").toLowerCase().includes(search) ||
         (h.categoria || "").toLowerCase().includes(search) ||
         (h.ubicacion || "").toLowerCase().includes(search) ||
-        h.estado.toLowerCase().includes(search)
+        h.estado.toLowerCase().includes(search),
     );
 
     this._render(filtrado);
@@ -353,11 +440,15 @@ const HerramientasModule = {
 
     document
       .getElementById("btnCancelHerramienta")
-      ?.addEventListener("click", () => closeOverlay("modalHerramientaOverlay"));
+      ?.addEventListener("click", () =>
+        closeOverlay("modalHerramientaOverlay"),
+      );
 
     document
       .getElementById("btnCloseModalHerramienta")
-      ?.addEventListener("click", () => closeOverlay("modalHerramientaOverlay"));
+      ?.addEventListener("click", () =>
+        closeOverlay("modalHerramientaOverlay"),
+      );
 
     document
       .getElementById("btnRefreshHerramientas")
@@ -373,6 +464,25 @@ const HerramientasModule = {
         if (e.target.id === "modalHerramientaOverlay") {
           closeOverlay("modalHerramientaOverlay");
         }
+      });
+
+    document
+      .getElementById("btnSavePrestar")
+      ?.addEventListener("click", () => this.savePrestamo());
+
+    document
+      .getElementById("btnCancelPrestar")
+      ?.addEventListener("click", () => closeOverlay("modalPrestarOverlay"));
+
+    document
+      .getElementById("btnClosePrestar")
+      ?.addEventListener("click", () => closeOverlay("modalPrestarOverlay"));
+
+    document
+      .getElementById("modalPrestarOverlay")
+      ?.addEventListener("click", (e) => {
+        if (e.target.id === "modalPrestarOverlay")
+          closeOverlay("modalPrestarOverlay");
       });
   },
 };

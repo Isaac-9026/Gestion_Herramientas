@@ -210,6 +210,7 @@ VALUES
 (1, 'H-002', 'SER-002', 'BUENO', 1),
 (2, 'H-003', 'SER-003', 'REGULAR', 2);
 
+
 INSERT INTO proveedores (ruc, razon_social, contacto, telefono, direccion)
 VALUES 
 ('20123456789', 'Proveedor Industrial SAC', 'Juan Perez', '999888777', 'Lima');
