@@ -44,6 +44,78 @@
     </table>
   </div>
 
+
+  <div class="modal-overlay" id="modalHerramientaOverlay">
+  <div class="modal-panel">
+    
+    <div class="modal-header-custom">
+      <div>
+        <div class="modal-title-custom" id="modalHerramientaTitle">Nueva Herramienta</div>
+        <div class="modal-subtitle" id="modalHerramientaSubtitle">Completa los campos</div>
+      </div>
+      <button class="btn-modal-close" id="btnCloseModalHerramienta">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-custom">
+      <form id="formHerramienta" novalidate>
+        <input type="hidden" id="herramientaId" />
+
+        <div class="row g-3">
+
+          <!-- CODIGO -->
+          <div class="col-12">
+            <label class="form-label-custom">Código *</label>
+            <input type="text" id="hCodigo" class="input-custom" required />
+          </div>
+
+          <!-- SERIE -->
+          <div class="col-12">
+            <label class="form-label-custom">Serie</label>
+            <input type="text" id="hSerie" class="input-custom" />
+          </div>
+
+          <!-- PRODUCTO (DINÁMICO) -->
+          <div class="col-12" id="wrapProductoSelect">
+            <label class="form-label-custom">Producto *</label>
+            <select id="hProducto" class="input-custom"></select>
+          </div>
+
+          <!-- PRODUCTO SOLO LECTURA -->
+          <div class="col-12 d-none" id="wrapProductoText">
+            <label class="form-label-custom">Producto</label>
+            <input type="text" id="hProductoText" class="input-custom" disabled />
+          </div>
+
+          <!-- ESTADO -->
+          <div class="col-md-6">
+            <label class="form-label-custom">Estado</label>
+            <select id="hEstado" class="input-custom">
+              <option value="BUENO">BUENO</option>
+              <option value="REGULAR">REGULAR</option>
+              <option value="MALO">MALO</option>
+            </select>
+          </div>
+
+          <!-- UBICACION -->
+          <div class="col-md-6">
+            <label class="form-label-custom">Ubicación</label>
+            <select id="hUbicacion" class="input-custom"></select>
+          </div>
+
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer-custom">
+      <button class="btn-cancel" id="btnCancelHerramienta">Cancelar</button>
+      <button class="btn-save" id="btnSaveHerramienta">Guardar</button>
+    </div>
+
+  </div>
+</div>
+
   <div class="table-footer">
     <span class="text-muted text-sm" id="totalHerramientasLabel">Cargando…</span>
   </div>
