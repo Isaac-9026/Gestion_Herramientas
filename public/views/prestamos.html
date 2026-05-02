@@ -12,8 +12,12 @@
 <div class="search-bar-row">
   <div class="search-input-wrap">
     <i class="bi bi-search search-icon"></i>
-    <input type="text" id="searchPrestamo" class="search-input"
-      placeholder="Buscar por persona, usuario o estado…" />
+    <input
+      type="text"
+      id="searchPrestamo"
+      class="search-input"
+      placeholder="Buscar por persona, usuario o estado…"
+    />
   </div>
 
   <button class="btn-icon-outline" id="btnRefreshPrestamos" title="Recargar">
@@ -29,7 +33,7 @@
           <th>#</th>
           <th>Persona</th>
           <th>Usuario</th>
-          <th>Motivo</th>
+          <th>Ítems</th>
           <th>Fecha</th>
           <th>Estado</th>
           <th>Acciones</th>
@@ -51,14 +55,14 @@
   </div>
 </div>
 
-<!--  Modal de detalle prestamo -->
+<!-- MODAL DETALLE PRÉSTAMO -->
 <div class="modal-overlay" id="modalDetallePrestamo">
   <div class="modal-panel">
 
     <div class="modal-header-custom">
       <div>
         <div class="modal-title-custom">Detalle del Préstamo</div>
-        <div class="modal-subtitle" id="detallePrestamoInfo"></div>
+        <div class="modal-subtitle" id="detalleInfo"></div>
       </div>
 
       <button class="btn-modal-close" id="btnCloseDetallePrestamo">
@@ -72,17 +76,19 @@
         <table class="table-custom">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Herramienta</th>
-              <th>Estado Entrega</th>
-              <th>Estado Devolución</th>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Entrega</th>
+              <th>Estado</th>
+              <th>Fecha Dev.</th>
+              <th>Obs.</th>
               <th>Acción</th>
             </tr>
           </thead>
 
           <tbody id="bodyDetallePrestamo">
             <tr>
-              <td colspan="5" class="text-center py-4">
+              <td colspan="7" class="text-center py-4">
                 <div class="spinner-custom"></div>
               </td>
             </tr>
@@ -100,3 +106,4 @@
 
   </div>
 </div>
+
