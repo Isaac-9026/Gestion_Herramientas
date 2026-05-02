@@ -6,10 +6,17 @@ const db = require("../config/db");
 router.get("/", async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT p.*, per.nombres, u.username
+      SELECT 
+        p.*,
+        per.nombres,
+        u.username,
+      COUNT(dp.id_detalle_prestamo) AS total_items,
+      MIN(dp.fecha_devolucion) IS NULL AS en_curso
       FROM prestamos p
       JOIN personas per ON p.id_persona = per.id_persona
       JOIN usuarios u ON p.id_usuario_despachador = u.id_usuario
+      LEFT JOIN detalle_prestamo dp ON p.id_prestamo = dp.id_prestamo
+      GROUP BY p.id_prestamo
       ORDER BY p.id_prestamo DESC
     `);
 
@@ -43,11 +50,23 @@ router.get("/:id", async (req, res) => {
     }
 
     const [detalle] = await db.query(`
-      SELECT dp.*, h.codigo_inventario, pr.nombre
+      SELECT 
+        dp.id_detalle_prestamo,
+        dp.estado_entrega,
+        dp.estado_devolucion,
+        dp.fecha_devolucion,
+        dp.observaciones,
+
+        h.codigo_inventario,
+        pr.nombre AS producto,
+
+        u.username AS usuario_receptor
+
       FROM detalle_prestamo dp
-      JOIN herramientas h ON dp.id_herramienta = h.id_herramienta
-      JOIN productos pr ON h.id_producto = pr.id_producto
-      WHERE dp.id_prestamo = ?
+    JOIN herramientas h ON dp.id_herramienta = h.id_herramienta
+    JOIN productos pr ON h.id_producto = pr.id_producto
+    LEFT JOIN usuarios u ON dp.id_usuario_receptor = u.id_usuario
+    WHERE dp.id_prestamo = ?
     `, [id]);
 
     res.json({

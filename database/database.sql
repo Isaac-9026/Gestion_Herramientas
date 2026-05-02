@@ -184,6 +184,9 @@ CREATE TABLE IF NOT EXISTS detalle_prestamo (
     FOREIGN KEY (id_usuario_receptor) REFERENCES usuarios(id_usuario)
 ) ENGINE=InnoDB;
 
+ALTER TABLE prestamos 
+ADD fecha_cierre DATETIME NULL;
+
 INSERT INTO marcas (nombre) VALUES
 ('Bosch'),
 ('Makita'),
