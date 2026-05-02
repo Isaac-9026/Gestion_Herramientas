@@ -3,6 +3,8 @@
 const PrestamosModule = {
   prestamoActual: {
     herramientas: [],
+    herramientasDisponibles: [],
+    herramientasFiltradas: [],
   },
   async init() {
     this._bindEvents();
@@ -126,14 +128,45 @@ const PrestamosModule = {
     );
 
     this.herramientasDisponibles = disponibles;
+    this.herramientasFiltradas = disponibles;
+
     const sel = document.getElementById("pHerramienta");
 
     sel.innerHTML = disponibles
       .map(
         (h) =>
           `<option value="${h.id_herramienta}">
-      ${h.codigo_inventario} - ${h.producto}
-    </option>`,
+        ${h.codigo_inventario} - ${h.producto}
+      </option>`,
+      )
+      .join("");
+
+    this._renderHerramientasDisponibles();
+  },
+  _filterHerramientasModal() {
+    const search = document
+      .getElementById("searchHerramientaModal")
+      .value.toLowerCase()
+      .trim();
+
+    this.herramientasFiltradas = this.herramientasDisponibles.filter(
+      (h) =>
+        h.codigo_inventario.toLowerCase().includes(search) ||
+        h.producto.toLowerCase().includes(search) ||
+        h.marca.toLowerCase().includes(search),
+    );
+
+    this._renderHerramientasDisponibles();
+  },
+  _renderHerramientasDisponibles() {
+    const sel = document.getElementById("pHerramienta");
+
+    sel.innerHTML = this.herramientasFiltradas
+      .map(
+        (h) =>
+          `<option value="${h.id_herramienta}">
+          ${h.codigo_inventario} - ${h.producto}
+        </option>`,
       )
       .join("");
   },
@@ -486,5 +519,9 @@ const PrestamosModule = {
     document
       .getElementById("searchPrestamo")
       ?.addEventListener("input", () => this._filter());
+
+    document
+      .getElementById("searchHerramientaModal")
+      ?.addEventListener("input", () => this._filterHerramientasModal());
   },
 };
