@@ -34,7 +34,7 @@
           <th>Persona</th>
           <th>Usuario</th>
           <th>Ítems</th>
-          <th>Fecha</th>
+          <th>Fecha Límite</th>
           <th>Estado</th>
           <th>Acciones</th>
         </tr>
@@ -153,6 +153,72 @@
           <i class="bi bi-check-lg me-1"></i> Registrar
         </span>
         <span id="btnSaveDevSpinner" class="d-none">
+          <div class="spinner-sm"></div>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO PRÉSTAMO -->
+<div class="modal-overlay" id="modalPrestamo">
+  <div class="modal-panel">
+    <div class="modal-header-custom">
+      <div>
+        <div class="modal-title-custom">Nuevo Préstamo</div>
+        <div class="modal-subtitle">
+          Registrar préstamo con múltiples herramientas
+        </div>
+      </div>
+
+      <button class="btn-modal-close" id="btnClosePrestamo">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-custom">
+      <!-- PERSONA -->
+      <label class="form-label-custom">Persona *</label>
+      <select id="pPersona" class="input-custom"></select>
+
+      <!-- MOTIVO -->
+      <label class="form-label-custom mt-3">Motivo</label>
+      <input
+        type="text"
+        id="pMotivo"
+        class="input-custom"
+        placeholder="Ej: Trabajo en obra"
+      />
+
+      <label class="form-label-custom mt-3">
+        Fecha límite <span class="required">*</span>
+      </label>
+      <input type="datetime-local" id="pFechaLimite" class="input-custom" />
+      <div class="field-error" id="err-pFechaLimite"></div>
+
+      <!-- BUSCAR HERRAMIENTA -->
+      <label class="form-label-custom mt-4">Agregar herramientas</label>
+      <select id="pHerramienta" class="input-custom"></select>
+
+      <button class="btn-primary-action mt-2" id="btnAddHerramienta">
+        <i class="bi bi-plus-lg"></i> Agregar
+      </button>
+
+      <!-- LISTA -->
+      <div class="mt-4">
+        <h6>Herramientas seleccionadas</h6>
+        <ul id="listaHerramientas" class="list-group"></ul>
+      </div>
+    </div>
+
+    <div class="modal-footer-custom">
+      <button class="btn-cancel" id="btnCancelPrestamo">Cancelar</button>
+
+      <button class="btn-save" id="btnSavePrestamo">
+        <span id="btnSavePrestamoText">
+          <i class="bi bi-check-lg me-1"></i> Registrar
+        </span>
+        <span id="btnSavePrestamoSpinner" class="d-none">
           <div class="spinner-sm"></div>
         </span>
       </button>

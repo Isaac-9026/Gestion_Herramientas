@@ -38,7 +38,16 @@ router.get("/:id", async (req, res) => {
     const id = req.params.id;
 
     const [prestamo] = await db.query(
-      "SELECT * FROM prestamos WHERE id_prestamo = ?",
+      `
+      SELECT 
+        p.*, 
+        per.nombres, 
+        u.username AS despachador
+      FROM prestamos p
+      JOIN personas per ON p.id_persona = per.id_persona
+      JOIN usuarios u ON p.id_usuario_despachador = u.id_usuario
+      WHERE p.id_prestamo = ?
+    `,
       [id]
     );
 

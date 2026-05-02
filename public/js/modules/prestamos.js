@@ -1,6 +1,9 @@
 "use strict";
 
 const PrestamosModule = {
+  prestamoActual: {
+    herramientas: [],
+  },
   async init() {
     this._bindEvents();
     await this.load();
@@ -55,7 +58,14 @@ const PrestamosModule = {
           </span>
         </td>
 
-        <td>${formatFecha(p.fecha_prestamo)}</td>
+        <td>${new Date(p.fecha_salida).toLocaleString("es-PE", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })}</td>
 
         <td>
           <span class="badge ${
@@ -88,6 +98,170 @@ const PrestamosModule = {
       .join("");
   },
 
+  async openNew() {
+    this.prestamoActual = { herramientas: [] };
+
+    await this._loadPersonas();
+    await this._loadHerramientasDisponibles();
+
+    document.getElementById("listaHerramientas").innerHTML = "";
+
+    openOverlay("modalPrestamo");
+  },
+
+  async _loadPersonas() {
+    const { data } = await http("/api/personas");
+
+    const sel = document.getElementById("pPersona");
+    sel.innerHTML = data
+      .map((p) => `<option value="${p.id_persona}">${p.nombres}</option>`)
+      .join("");
+  },
+
+  async _loadHerramientasDisponibles() {
+    const { data } = await http("/api/herramientas");
+
+    const disponibles = data.filter(
+      (h) => h.disponible && (h.estado === "BUENO" || h.estado === "REGULAR"),
+    );
+
+    this.herramientasDisponibles = disponibles;
+    const sel = document.getElementById("pHerramienta");
+
+    sel.innerHTML = disponibles
+      .map(
+        (h) =>
+          `<option value="${h.id_herramienta}">
+      ${h.codigo_inventario} - ${h.producto}
+    </option>`,
+      )
+      .join("");
+  },
+
+  _filter() {
+    const search = document
+      .getElementById("searchPrestamo")
+      .value.toLowerCase();
+
+    const filtrado = this.lista.filter(
+      (p) =>
+        p.nombres.toLowerCase().includes(search) ||
+        p.username.toLowerCase().includes(search) ||
+        p.estado_prestamo.toLowerCase().includes(search),
+    );
+
+    this._render(filtrado);
+  },
+
+  _addHerramienta() {
+    const select = document.getElementById("pHerramienta");
+    const id = select.value;
+
+    // obtener objeto completo desde lista original
+    const herramienta = this.herramientasDisponibles.find(
+      (h) => h.id_herramienta == id,
+    );
+
+    if (!herramienta) return;
+
+    if (this.prestamoActual.herramientas.some((h) => h.id_herramienta == id)) {
+      return showToast("Ya agregada", "info");
+    }
+
+    this.prestamoActual.herramientas.push(herramienta);
+
+    this._renderLista();
+  },
+
+  _renderLista() {
+    const ul = document.getElementById("listaHerramientas");
+
+    ul.innerHTML = this.prestamoActual.herramientas
+      .map(
+        (h) => `
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      
+      <div>
+        <strong>${h.codigo_inventario}</strong>
+        <div style="font-size:12px;color:gray">
+          ${h.producto} • ${h.marca}
+        </div>
+      </div>
+
+      <button class="btn-action btn-action-delete"
+        onclick="PrestamosModule._removeHerramienta(${h.id_herramienta})">
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+    </li>
+  `,
+      )
+      .join("");
+  },
+
+  _removeHerramienta(id) {
+    this.prestamoActual.herramientas = this.prestamoActual.herramientas.filter(
+      (h) => h.id_herramienta != id,
+    );
+
+    this._renderLista();
+  },
+
+  async _savePrestamo() {
+    const persona = document.getElementById("pPersona").value;
+    const motivo = document.getElementById("pMotivo").value;
+    const fecha_limite = document.getElementById("pFechaLimite").value;
+
+    clearErrors(["pFechaLimite"]);
+
+    if (!fecha_limite) {
+      setError(
+        "pFechaLimite",
+        "err-pFechaLimite",
+        "La fecha límite es obligatoria",
+      );
+      return;
+    }
+
+    if (!persona) return showToast("Selecciona persona", "error");
+    if (!this.prestamoActual.herramientas.length)
+      return showToast("Agrega herramientas", "error");
+
+    setLoading(
+      "btnSavePrestamo",
+      "btnSavePrestamoText",
+      "btnSavePrestamoSpinner",
+      true,
+    );
+
+    try {
+      await http("/api/prestamos", "POST", {
+        id_persona: persona,
+        id_usuario_despachador: 1,
+        motivo,
+        fecha_limite,
+        herramientas: this.prestamoActual.herramientas.map(
+          (h) => h.id_herramienta,
+        ),
+      });
+
+      showToast("Préstamo creado correctamente", "success");
+
+      closeOverlay("modalPrestamo");
+
+      await this.load();
+    } catch (e) {
+      showToast(e.message, "error");
+    } finally {
+      setLoading(
+        "btnSavePrestamo",
+        "btnSavePrestamoText",
+        "btnSavePrestamoSpinner",
+        false,
+      );
+    }
+  },
+
   //VER DETALLE DEL PRÉSTAMO
   async openDetalle(id) {
     const tbody = document.getElementById("bodyDetallePrestamo");
@@ -100,12 +274,23 @@ const PrestamosModule = {
       const { data } = await http(`/api/prestamos/${id}`);
 
       const { prestamo, detalle } = data;
+      const fechaLimpia = new Date(prestamo.fecha_salida).toLocaleString(
+        "es-PE",
+        {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        },
+      );
 
       // info general arriba
       document.getElementById("detalleInfo").innerHTML = `
-        <strong>Persona:</strong> ${prestamo.id_persona} <br>
+        <strong>Persona:</strong> ${prestamo.nombres} <br>
         <strong>Motivo:</strong> ${prestamo.motivo || "—"} <br>
-        <strong>Fecha:</strong> ${formatFecha(prestamo.fecha_prestamo)}
+        <strong>Fecha:</strong> ${fechaLimpia}
       `;
 
       if (!detalle.length) {
@@ -140,8 +325,19 @@ const PrestamosModule = {
           </td>
 
           <td>
-            ${d.fecha_devolucion ? formatFecha(d.fecha_devolucion) : "—"}
-          </td>
+  ${
+    d.fecha_devolucion
+      ? new Date(d.fecha_devolucion).toLocaleString("es-PE", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })
+      : "—"
+  }
+</td>
 
           <td>
             ${d.observaciones || "—"}
@@ -163,33 +359,6 @@ const PrestamosModule = {
         .join("");
     } catch (e) {
       showToast("Error al cargar detalle", "error");
-    }
-  },
-
-  //DEVOLVER HERRAMIENTA
-  async devolver(id_detalle) {
-    const estado = prompt(
-      "Estado de devolución (BUENO / REGULAR / MALO):",
-      "BUENO",
-    );
-    if (!estado) return;
-
-    const obs = prompt("Observaciones (opcional):", "");
-
-    try {
-      await http(`/api/prestamos/devolver/${id_detalle}`, "PUT", {
-        estado_devolucion: estado,
-        observaciones: obs,
-        id_usuario_receptor: 1,
-      });
-
-      showToast("Devolución registrada", "success");
-
-      // refrescar
-      await this.load();
-      document.getElementById("modalDetallePrestamo")?.click();
-    } catch (e) {
-      showToast(e.message, "error");
     }
   },
 
@@ -293,5 +462,29 @@ const PrestamosModule = {
       ?.addEventListener("click", (e) => {
         if (e.target.id === "modalDevolucion") closeOverlay("modalDevolucion");
       });
+
+    document
+      .getElementById("btnNuevoPrestamo")
+      ?.addEventListener("click", () => this.openNew());
+
+    document
+      .getElementById("btnAddHerramienta")
+      ?.addEventListener("click", () => this._addHerramienta());
+
+    document
+      .getElementById("btnSavePrestamo")
+      ?.addEventListener("click", () => this._savePrestamo());
+
+    document
+      .getElementById("btnCancelPrestamo")
+      ?.addEventListener("click", () => closeOverlay("modalPrestamo"));
+
+    document
+      .getElementById("btnClosePrestamo")
+      ?.addEventListener("click", () => closeOverlay("modalPrestamo"));
+
+    document
+      .getElementById("searchPrestamo")
+      ?.addEventListener("input", () => this._filter());
   },
 };
