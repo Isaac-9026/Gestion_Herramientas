@@ -226,3 +226,6 @@ SHOW TABLES;
 SELECT * FROM herramientas;
 SELECT * FROM proveedores;
 SELECT * FROM ubicaciones
+
+
+DESCRIBE prestamos;

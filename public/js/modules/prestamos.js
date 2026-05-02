@@ -59,57 +59,65 @@ const PrestamosModule = {
     }
 
     tbody.innerHTML = lista
-      .map(
-        (p, i) => `
-      <tr>
-        <td>${String(i + 1).padStart(2, "0")}</td>
+      .map((p, i) => {
+        //para determinar si el prestamo está "ATRASADO"
+        const hoy = new Date();
+        const limite = new Date(p.fecha_limite);
+        let estado = p.estado_prestamo;
 
-        <td>${p.nombres}</td>
+        if (estado === "EN_CURSO" && limite < hoy) {
+          estado = "ATRASADO";
+        }
 
-        <td>
-          <span class="badge bg-info">
-            ${p.total_items} ítem(s)
-          </span>
-        </td>
+        const badgeClass =
+          estado === "CERRADO"
+            ? "bg-success"
+            : estado === "ATRASADO"
+              ? "bg-danger"
+              : "bg-warning";
 
-        <td>
-          <div><strong>Prestamo:</strong> ${formatDate(p.fecha_salida)}</div>
-          <div>
-            <strong>Limite:</strong> ${formatDate(p.fecha_limite)}
-          </div>
-          <div style="font-size:11px;color:gray">
-            por ${p.username}
-          </div>
-        </td>
-
-        <td>
-          <span class="badge ${
-            p.estado_prestamo === "EN_CURSO" ? "bg-warning" : "bg-success"
-          }">
-            ${p.estado_prestamo}
-          </span>
-        </td>
-
-        <td>
-          <button class="btn-action btn-action-edit"
-            onclick="PrestamosModule.openDetalle(${p.id_prestamo})"
-            title="Ver detalle">
-            <i class="bi bi-eye-fill"></i>
-          </button>
-
-          ${
-            p.estado_prestamo === "CERRADO"
-              ? `<button class="btn-action btn-action-delete"
-                   onclick="PrestamosModule.confirmDel(${p.id_prestamo})"
-                   title="Eliminar">
-                   <i class="bi bi-trash3-fill"></i>
-                 </button>`
-              : ""
-          }
-        </td>
-      </tr>
-    `,
-      )
+        return `
+          <tr>
+            <td>${String(i + 1).padStart(2, "0")}</td>
+            <td>${p.nombres}</td>
+            <td>
+              <span class="badge bg-info">
+                ${p.total_items} ítem(s)
+              </span>
+            </td>
+            <td>
+              <div><strong>Prestamo:</strong> ${formatDate(p.fecha_salida)}</div>
+              <div>
+                <strong>Limite:</strong> ${formatDate(p.fecha_limite)}
+              </div>
+              <div style="font-size:11px;color:gray">
+                por ${p.username}
+              </div>
+            </td>
+            <td>
+              <span class="badge ${badgeClass}">
+                ${estado}
+              </span>
+            </td>
+            <td>
+              <button class="btn-action btn-action-edit"
+                onclick="PrestamosModule.openDetalle(${p.id_prestamo})"
+                title="Ver detalle">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+              ${
+                p.estado_prestamo === "CERRADO"
+                  ? `<button class="btn-action btn-action-delete"
+                       onclick="PrestamosModule.confirmDel(${p.id_prestamo})"
+                       title="Eliminar">
+                       <i class="bi bi-trash3-fill"></i>
+                     </button>`
+                  : ""
+              }
+            </td>
+          </tr>
+        `;
+      })
       .join("");
   },
 
@@ -187,14 +195,25 @@ const PrestamosModule = {
   _filter() {
     const search = document
       .getElementById("searchPrestamo")
-      .value.toLowerCase();
+      .value.toLowerCase()
+      .trim();
 
-    const filtrado = this.lista.filter(
-      (p) =>
+    const filtrado = this.lista.filter((p) => {
+      let estado = p.estado_prestamo;
+
+      //comprobar si el estado necesita ser actualizado a 'ATRASADO'
+      const hoy = new Date();
+      const limite = new Date(p.fecha_limite);
+      if (estado === "EN_CURSO" && limite < hoy) {
+        estado = "ATRASADO";
+      }
+
+      return (
         p.nombres.toLowerCase().includes(search) ||
         p.username.toLowerCase().includes(search) ||
-        p.estado_prestamo.toLowerCase().includes(search),
-    );
+        estado.toLowerCase().includes(search)
+      );
+    });
 
     this._render(filtrado);
   },

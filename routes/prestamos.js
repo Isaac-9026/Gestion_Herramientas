@@ -106,7 +106,7 @@ router.post("/", async (req, res) => {
       id_usuario_despachador,
       motivo,
       herramientas,
-      fecha_cierre
+      fecha_limite
     } = req.body;
 
     if (!herramientas || herramientas.length === 0) {
@@ -119,9 +119,9 @@ router.post("/", async (req, res) => {
     await connection.beginTransaction();
 
     const [prestamoResult] = await connection.query(
-      `INSERT INTO prestamos (id_persona, id_usuario_despachador, motivo, fecha_cierre)
+      `INSERT INTO prestamos (id_persona, id_usuario_despachador, motivo, fecha_limite)
        VALUES (?, ?, ?, ?)`,
-      [id_persona, id_usuario_despachador, motivo, fecha_cierre]
+      [id_persona, id_usuario_despachador, motivo, fecha_limite]
     );
 
     const id_prestamo = prestamoResult.insertId;
