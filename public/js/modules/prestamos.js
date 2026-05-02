@@ -1,4 +1,18 @@
 "use strict";
+function formatDate(date) {
+  const fecha = new Date(date);
+  if (isNaN(fecha)) {
+    return "Fecha inválida"; // Si la fecha no es válida
+  }
+  return fecha.toLocaleString("es-PE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
 
 const PrestamosModule = {
   prestamoActual: {
@@ -34,7 +48,7 @@ const PrestamosModule = {
     if (!lista.length) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7">
+          <td colspan="6">
             <div class="empty-state">
               <i class="bi bi-journal-x"></i>
               <p>No hay préstamos registrados</p>
@@ -58,23 +72,15 @@ const PrestamosModule = {
           </span>
         </td>
 
-        <td>${new Date(p.fecha_salida).toLocaleString("es-PE", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })}</td>
-
-        <td>${new Date(p.fecha_limite).toLocaleString("es-PE", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })}</td>
+        <td>
+          <div><strong>Prestamo:</strong> ${formatDate(p.fecha_salida)}</div>
+          <div>
+            <strong>Limite:</strong> ${formatDate(p.fecha_limite)}
+          </div>
+          <div style="font-size:11px;color:gray">
+            por ${p.username}
+          </div>
+        </td>
 
         <td>
           <span class="badge ${
