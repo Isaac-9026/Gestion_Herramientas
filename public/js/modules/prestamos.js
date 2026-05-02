@@ -78,7 +78,11 @@ const PrestamosModule = {
 
         return `
           <tr>
-            <td>${String(i + 1).padStart(2, "0")}</td>
+            <td>
+  <span class="badge bg-secondary" style="font-family: monospace; font-size: 0.9rem;">
+    PR-${String(p.id_prestamo).padStart(4, "0")}
+  </span>
+</td>
             <td>${p.nombres}</td>
             <td>
               <span class="badge bg-info">
@@ -199,11 +203,14 @@ const PrestamosModule = {
       .trim();
 
     const filtrado = this.lista.filter((p) => {
-      let estado = p.estado_prestamo;
 
+      const folio = `pr-${String(p.id_prestamo).padStart(4, '0')}`;
+      const idReal = String(p.id_prestamo);
+      let estado = p.estado_prestamo;
       //comprobar si el estado necesita ser actualizado a 'ATRASADO'
       const hoy = new Date();
       const limite = new Date(p.fecha_limite);
+
       if (estado === "EN_CURSO" && limite < hoy) {
         estado = "ATRASADO";
       }
@@ -211,7 +218,9 @@ const PrestamosModule = {
       return (
         p.nombres.toLowerCase().includes(search) ||
         p.username.toLowerCase().includes(search) ||
-        estado.toLowerCase().includes(search)
+        estado.toLowerCase().includes(search) ||
+        folio.includes(search) ||
+        idReal.includes(search)
       );
     });
 
