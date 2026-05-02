@@ -52,8 +52,6 @@ const PrestamosModule = {
 
         <td>${p.nombres}</td>
 
-        <td>${p.username}</td>
-
         <td>
           <span class="badge bg-info">
             ${p.total_items} ítem(s)
@@ -61,6 +59,15 @@ const PrestamosModule = {
         </td>
 
         <td>${new Date(p.fecha_salida).toLocaleString("es-PE", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })}</td>
+
+        <td>${new Date(p.fecha_limite).toLocaleString("es-PE", {
           day: "2-digit",
           month: "2-digit",
           year: "numeric",
@@ -307,7 +314,7 @@ const PrestamosModule = {
       const { data } = await http(`/api/prestamos/${id}`);
 
       const { prestamo, detalle } = data;
-      const fechaLimpia = new Date(prestamo.fecha_salida).toLocaleString(
+      const fechaLimpia = new Date(prestamo.fecha_limite).toLocaleString(
         "es-PE",
         {
           day: "2-digit",
@@ -323,7 +330,7 @@ const PrestamosModule = {
       document.getElementById("detalleInfo").innerHTML = `
         <strong>Persona:</strong> ${prestamo.nombres} <br>
         <strong>Motivo:</strong> ${prestamo.motivo || "—"} <br>
-        <strong>Fecha:</strong> ${fechaLimpia}
+        <strong>Fecha Limite:</strong> ${fechaLimpia}
       `;
 
       if (!detalle.length) {

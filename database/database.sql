@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS prestamos (
     id_prestamo INT AUTO_INCREMENT PRIMARY KEY,
     id_persona INT NOT NULL,
     id_usuario_despachador INT NOT NULL,
-
+    fecha_limite DATETIME NOT NULL,
     fecha_salida DATETIME DEFAULT CURRENT_TIMESTAMP,
     motivo TEXT,
     estado_prestamo ENUM('EN_CURSO','CERRADO') DEFAULT 'EN_CURSO',
@@ -184,8 +184,6 @@ CREATE TABLE IF NOT EXISTS detalle_prestamo (
     FOREIGN KEY (id_usuario_receptor) REFERENCES usuarios(id_usuario)
 ) ENGINE=InnoDB;
 
-ALTER TABLE prestamos 
-ADD fecha_cierre DATETIME NULL;
 
 INSERT INTO marcas (nombre) VALUES
 ('Bosch'),
