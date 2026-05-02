@@ -58,7 +58,6 @@
 <!-- MODAL DETALLE PRÉSTAMO -->
 <div class="modal-overlay" id="modalDetallePrestamo">
   <div class="modal-panel">
-
     <div class="modal-header-custom">
       <div>
         <div class="modal-title-custom">Detalle del Préstamo</div>
@@ -71,7 +70,6 @@
     </div>
 
     <div class="modal-body-custom">
-
       <div class="table-responsive">
         <table class="table-custom">
           <thead>
@@ -95,7 +93,6 @@
           </tbody>
         </table>
       </div>
-
     </div>
 
     <div class="modal-footer-custom">
@@ -103,7 +100,62 @@
         Cerrar
       </button>
     </div>
-
   </div>
 </div>
 
+<!-- MODAL DEVOLUCIÓN -->
+<div class="modal-overlay" id="modalDevolucion">
+  <div class="modal-panel modal-sm">
+    <div class="modal-header-custom">
+      <div>
+        <div class="modal-title-custom">Registrar Devolución</div>
+        <div class="modal-subtitle" id="devolucionInfo"></div>
+      </div>
+
+      <button class="btn-modal-close" id="btnCloseDevolucion">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-custom">
+      <form id="formDevolucion" novalidate>
+        <input type="hidden" id="devIdDetalle" />
+
+        <!-- Estado -->
+        <label class="form-label-custom">
+          Estado de devolución <span class="required">*</span>
+        </label>
+
+        <select id="devEstado" class="input-custom" required>
+          <option value="">— Seleccionar —</option>
+          <option value="BUENO">BUENO</option>
+          <option value="REGULAR">REGULAR</option>
+          <option value="MALO">MALO</option>
+        </select>
+        <div class="field-error" id="err-devEstado"></div>
+
+        <!-- Observaciones -->
+        <label class="form-label-custom mt-3">Observaciones</label>
+        <textarea
+          id="devObs"
+          class="input-custom"
+          rows="3"
+          placeholder="Ej: golpe, desgaste, falla…"
+        ></textarea>
+      </form>
+    </div>
+
+    <div class="modal-footer-custom">
+      <button class="btn-cancel" id="btnCancelDevolucion">Cancelar</button>
+
+      <button class="btn-save" id="btnSaveDevolucion">
+        <span id="btnSaveDevText">
+          <i class="bi bi-check-lg me-1"></i> Registrar
+        </span>
+        <span id="btnSaveDevSpinner" class="d-none">
+          <div class="spinner-sm"></div>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

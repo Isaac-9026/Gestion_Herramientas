@@ -1,31 +1,29 @@
-'use strict';
+"use strict";
 
 const PrestamosModule = {
-
   async init() {
     this._bindEvents();
     await this.load();
   },
 
   async load() {
-    document.getElementById('bodyPrestamos').innerHTML =
+    document.getElementById("bodyPrestamos").innerHTML =
       `<tr><td colspan="7" class="text-center py-5"><div class="spinner-custom"></div></td></tr>`;
 
     try {
-      const { data } = await http('/api/prestamos');
+      const { data } = await http("/api/prestamos");
       this.lista = data;
       this._render(this.lista);
     } catch (e) {
-      showToast('Error al cargar préstamos: ' + e.message, 'error');
+      showToast("Error al cargar préstamos: " + e.message, "error");
     }
   },
 
-
-  // RENDER TABLA PRINCIPAL
+  //RENDER TABLA PRINCIPAL
   _render(lista) {
-    const tbody = document.getElementById('bodyPrestamos');
+    const tbody = document.getElementById("bodyPrestamos");
 
-    document.getElementById('totalPrestamosLabel').innerText =
+    document.getElementById("totalPrestamosLabel").innerText =
       `${lista.length} préstamo(s)`;
 
     if (!lista.length) {
@@ -41,9 +39,11 @@ const PrestamosModule = {
       return;
     }
 
-    tbody.innerHTML = lista.map((p, i) => `
+    tbody.innerHTML = lista
+      .map(
+        (p, i) => `
       <tr>
-        <td>${String(i + 1).padStart(2, '0')}</td>
+        <td>${String(i + 1).padStart(2, "0")}</td>
 
         <td>${p.nombres}</td>
 
@@ -59,9 +59,7 @@ const PrestamosModule = {
 
         <td>
           <span class="badge ${
-            p.estado_prestamo === 'EN_CURSO'
-              ? 'bg-warning'
-              : 'bg-success'
+            p.estado_prestamo === "EN_CURSO" ? "bg-warning" : "bg-success"
           }">
             ${p.estado_prestamo}
           </span>
@@ -75,28 +73,28 @@ const PrestamosModule = {
           </button>
 
           ${
-            p.estado_prestamo === 'CERRADO'
+            p.estado_prestamo === "CERRADO"
               ? `<button class="btn-action btn-action-delete"
                    onclick="PrestamosModule.confirmDel(${p.id_prestamo})"
                    title="Eliminar">
                    <i class="bi bi-trash3-fill"></i>
                  </button>`
-              : ''
+              : ""
           }
         </td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join("");
   },
-
 
   //VER DETALLE DEL PRÉSTAMO
   async openDetalle(id) {
-    const tbody = document.getElementById('bodyDetallePrestamo');
+    const tbody = document.getElementById("bodyDetallePrestamo");
 
-    openOverlay('modalDetallePrestamo');
+    openOverlay("modalDetallePrestamo");
 
-    tbody.innerHTML =
-      `<tr><td colspan="7" class="text-center py-4"><div class="spinner-custom"></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4"><div class="spinner-custom"></div></td></tr>`;
 
     try {
       const { data } = await http(`/api/prestamos/${id}`);
@@ -104,9 +102,9 @@ const PrestamosModule = {
       const { prestamo, detalle } = data;
 
       // info general arriba
-      document.getElementById('detalleInfo').innerHTML = `
+      document.getElementById("detalleInfo").innerHTML = `
         <strong>Persona:</strong> ${prestamo.id_persona} <br>
-        <strong>Motivo:</strong> ${prestamo.motivo || '—'} <br>
+        <strong>Motivo:</strong> ${prestamo.motivo || "—"} <br>
         <strong>Fecha:</strong> ${formatFecha(prestamo.fecha_prestamo)}
       `;
 
@@ -116,18 +114,20 @@ const PrestamosModule = {
         return;
       }
 
-      tbody.innerHTML = detalle.map(d => `
+      tbody.innerHTML = detalle
+        .map(
+          (d) => `
         <tr>
           <td>${d.codigo_inventario}</td>
           <td>${d.producto}</td>
 
           <td>
             <span class="badge ${
-              d.estado_entrega === 'BUENO'
-                ? 'bg-success'
-                : d.estado_entrega === 'REGULAR'
-                  ? 'bg-warning'
-                  : 'bg-danger'
+              d.estado_entrega === "BUENO"
+                ? "bg-success"
+                : d.estado_entrega === "REGULAR"
+                  ? "bg-warning"
+                  : "bg-danger"
             }">${d.estado_entrega}</span>
           </td>
 
@@ -140,80 +140,158 @@ const PrestamosModule = {
           </td>
 
           <td>
-            ${d.fecha_devolucion
-              ? formatFecha(d.fecha_devolucion)
-              : '—'}
+            ${d.fecha_devolucion ? formatFecha(d.fecha_devolucion) : "—"}
           </td>
 
           <td>
-            ${d.observaciones || '—'}
+            ${d.observaciones || "—"}
           </td>
 
           <td>
             ${
               !d.fecha_devolucion
                 ? `<button class="btn-action btn-action-edit"
-                     onclick="PrestamosModule.devolver(${d.id_detalle_prestamo})">
+                     onclick="PrestamosModule.openDevolucion(${d.id_detalle_prestamo}, '${d.codigo_inventario}')">
                      <i class="bi bi-box-arrow-down"></i>
                    </button>`
-                : `<span class="text-muted">${d.usuario_receptor || '—'}</span>`
+                : `<span class="text-muted">${d.usuario_receptor || "—"}</span>`
             }
           </td>
         </tr>
-      `).join('');
-
+      `,
+        )
+        .join("");
     } catch (e) {
-      showToast('Error al cargar detalle', 'error');
+      showToast("Error al cargar detalle", "error");
     }
   },
 
-  // DEVOLVER HERRAMIENTA
+  //DEVOLVER HERRAMIENTA
   async devolver(id_detalle) {
-
-    const estado = prompt("Estado de devolución (BUENO / REGULAR / MALO):", "BUENO");
+    const estado = prompt(
+      "Estado de devolución (BUENO / REGULAR / MALO):",
+      "BUENO",
+    );
     if (!estado) return;
 
     const obs = prompt("Observaciones (opcional):", "");
 
     try {
-      await http(`/api/prestamos/devolver/${id_detalle}`, 'PUT', {
+      await http(`/api/prestamos/devolver/${id_detalle}`, "PUT", {
         estado_devolucion: estado,
         observaciones: obs,
-        id_usuario_receptor: 1
+        id_usuario_receptor: 1,
       });
 
-      showToast('Devolución registrada', 'success');
+      showToast("Devolución registrada", "success");
 
       // refrescar
       await this.load();
-      document.getElementById('modalDetallePrestamo')?.click();
-
+      document.getElementById("modalDetallePrestamo")?.click();
     } catch (e) {
-      showToast(e.message, 'error');
+      showToast(e.message, "error");
+    }
+  },
+
+  openDevolucion(id_detalle, codigo) {
+    document.getElementById("devIdDetalle").value = id_detalle;
+    document.getElementById("devEstado").value = "";
+    document.getElementById("devObs").value = "";
+
+    document.getElementById("devolucionInfo").innerHTML =
+      `Herramienta: <strong>${codigo}</strong>`;
+
+    clearErrors(["devEstado"]);
+
+    openOverlay("modalDevolucion");
+  },
+
+  async _saveDevolucion() {
+    const id = document.getElementById("devIdDetalle").value;
+    const estado = document.getElementById("devEstado").value;
+    const obs = document.getElementById("devObs").value.trim();
+
+    clearErrors(["devEstado"]);
+
+    if (!estado) {
+      setError("devEstado", "err-devEstado", "Selecciona un estado");
+      return;
+    }
+
+    setLoading(
+      "btnSaveDevolucion",
+      "btnSaveDevText",
+      "btnSaveDevSpinner",
+      true,
+    );
+
+    try {
+      await http(`/api/prestamos/devolver/${id}`, "PUT", {
+        estado_devolucion: estado,
+        observaciones: obs || null,
+        id_usuario_receptor: 1,
+      });
+
+      showToast("Devolución registrada correctamente", "success");
+
+      closeOverlay("modalDevolucion");
+      await this.load();
+      closeOverlay("modalDetallePrestamo");
+    } catch (e) {
+      showToast(e.message, "error");
+    } finally {
+      setLoading(
+        "btnSaveDevolucion",
+        "btnSaveDevText",
+        "btnSaveDevSpinner",
+        false,
+      );
     }
   },
 
   //ELIMINAR
   confirmDel(id) {
-    DeleteModal.open('prestamo', id, 'este préstamo', async () => {
+    DeleteModal.open("prestamo", id, "este préstamo", async () => {
       try {
-        await http(`/api/prestamos/${id}`, 'DELETE');
-        showToast('Préstamo eliminado', 'success');
+        await http(`/api/prestamos/${id}`, "DELETE");
+        showToast("Préstamo eliminado", "success");
         await this.load();
       } catch (e) {
-        showToast(e.message, 'error');
+        showToast(e.message, "error");
       }
     });
   },
 
+  //EVENTOS
   _bindEvents() {
-    document.getElementById('btnRefreshPrestamos')
-      ?.addEventListener('click', () => this.load());
+    document
+      .getElementById("btnRefreshPrestamos")
+      ?.addEventListener("click", () => this.load());
 
-      document.getElementById('btnCloseDetallePrestamo')
-  ?.addEventListener('click', () => closeOverlay('modalDetallePrestamo'));
+    document
+      .getElementById("btnCloseDetallePrestamo")
+      ?.addEventListener("click", () => closeOverlay("modalDetallePrestamo"));
 
-document.getElementById('btnCloseDetallePrestamoFooter')
-  ?.addEventListener('click', () => closeOverlay('modalDetallePrestamo'));
-  }
+    document
+      .getElementById("btnCloseDetallePrestamoFooter")
+      ?.addEventListener("click", () => closeOverlay("modalDetallePrestamo"));
+
+    document
+      .getElementById("btnSaveDevolucion")
+      ?.addEventListener("click", () => this._saveDevolucion());
+
+    document
+      .getElementById("btnCancelDevolucion")
+      ?.addEventListener("click", () => closeOverlay("modalDevolucion"));
+
+    document
+      .getElementById("btnCloseDevolucion")
+      ?.addEventListener("click", () => closeOverlay("modalDevolucion"));
+
+    document
+      .getElementById("modalDevolucion")
+      ?.addEventListener("click", (e) => {
+        if (e.target.id === "modalDevolucion") closeOverlay("modalDevolucion");
+      });
+  },
 };
