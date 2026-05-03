@@ -33,6 +33,11 @@ const HerramientasModule = {
     try {
       const herramienta = this.lista.find((h) => h.id_herramienta == id);
 
+      if (!herramienta.disponible || herramienta.estado === "MALO") {
+        alert("Esta herramienta no está disponible para préstamo");
+        return;
+      }
+
       document.getElementById("prestamoHerramientaId").value = id;
       document.getElementById("prestamoToolInfo").innerText =
         `${herramienta.producto} (${herramienta.codigo_inventario})`;
@@ -234,14 +239,20 @@ const HerramientasModule = {
               <i class="bi bi-trash3-fill"></i>
             </button>
 
-             ${
-               h.disponible
-                 ? `<button class="btn-action btn-action-edit"
-           onclick="HerramientasModule.openPrestar(${h.id_herramienta})">
-           <i class="bi bi-box-arrow-up"></i>
-         </button>`
-                 : `<span class="text-muted">En uso</span>`
-             }
+             <button 
+              class="btn-action btn-success"
+              onclick="HerramientasModule.openPrestar(${h.id_herramienta})"
+              title="${
+                !h.disponible
+                  ? "Herramienta en uso"
+                  : h.estado === "MALO"
+                    ? "Herramienta en mal estado"
+                    : "Prestar herramienta"
+                    }"
+                  ${!h.disponible || h.estado === "MALO" ? "disabled" : ""}
+                > 
+              <i class="bi bi-box-arrow-up"></i>
+              </button>
           </td>
         </tr>
       `,
