@@ -44,10 +44,12 @@ CREATE TABLE IF NOT EXISTS empleados (
     id_empleado INT AUTO_INCREMENT PRIMARY KEY,
     id_persona INT NOT NULL,
     id_area INT,
+    estado  ENUM('ACTIVO', 'INACTIVO') DEFAULT 'ACTIVO',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_persona) REFERENCES personas(id_persona),
     FOREIGN KEY (id_area) REFERENCES areas(id_area)
 ) ENGINE=InnoDB;
+
 
 CREATE TABLE IF NOT EXISTS usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
@@ -221,6 +223,10 @@ INSERT INTO personas (dni, nombres) VALUES ('12345678', 'Admin Sistema');
 INSERT INTO usuarios (id_persona, username, password_hash)
 VALUES (1, 'admin', '123456');
 
+INSERT INTO areas (nombre) VALUES
+('Mantenimiento'),
+('Electricidad'),
+('Logística');
 SHOW TABLES;
 
 SELECT * FROM herramientas;

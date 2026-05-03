@@ -17,7 +17,7 @@
 const AppState = {
   herramientas: [],
   prestamos:    [],
-  compras:  [],
+  personal:  [],
   proveedores:  [],
   productos:  [],
   deleteTarget: { type: null, id: null, name: null, onConfirm: null },

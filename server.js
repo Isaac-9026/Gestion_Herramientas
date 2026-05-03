@@ -1,9 +1,9 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
 
-const pool = require('./config/db');
+const pool = require("./config/db");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,26 +20,28 @@ app.use(express.urlencoded({ extended: true }));
 // ─────────────────────────────
 // APIs PRIMERO (OBLIGATORIO)
 // ─────────────────────────────
-app.use('/api/herramientas', require('./routes/herramientas'));
-app.use('/api/productos', require('./routes/productos'));
-app.use('/api/compras', require('./routes/compras'));
-app.use('/api/prestamos', require('./routes/prestamos'));
-app.use('/api/personas', require('./routes/personas'));
-app.use('/api/usuarios', require('./routes/usuarios'));
-app.use('/api/proveedores', require('./routes/proveedores'));
-app.use('/api/ubicaciones', require('./routes/ubicaciones'));
+app.use("/api/herramientas", require("./routes/herramientas"));
+app.use("/api/productos", require("./routes/productos"));
+app.use("/api/compras", require("./routes/compras"));
+app.use("/api/prestamos", require("./routes/prestamos"));
+app.use("/api/personas", require("./routes/personas"));
+app.use("/api/usuarios", require("./routes/usuarios"));
+app.use("/api/proveedores", require("./routes/proveedores"));
+app.use("/api/ubicaciones", require("./routes/ubicaciones"));
+app.use("/api/areas", require("./routes/areas"));
+app.use("/api/empleados", require("./routes/empleados"));
 
 // ─────────────────────────────
 // STATIC DESPUÉS
 // ─────────────────────────────
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
 // ─────────────────────────────
 // SPA FALLBACK (NO TOCAR /api)
 // ─────────────────────────────
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  if (req.path.startsWith("/api")) return next();
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // ─────────────────────────────
@@ -62,7 +64,7 @@ app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({
     success: false,
-    message: 'Error interno del servidor'
+    message: "Error interno del servidor",
   });
 });
 
