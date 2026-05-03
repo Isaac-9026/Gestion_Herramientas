@@ -153,47 +153,7 @@ const PrestamosModule = {
     );
 
     this.herramientasDisponibles = disponibles;
-    this.herramientasFiltradas = disponibles;
-
-    const sel = document.getElementById("pHerramienta");
-
-    sel.innerHTML = disponibles
-      .map(
-        (h) =>
-          `<option value="${h.id_herramienta}">
-        ${h.codigo_inventario} - ${h.producto}
-      </option>`,
-      )
-      .join("");
-
-    this._renderHerramientasDisponibles();
-  },
-  _filterHerramientasModal() {
-    const search = document
-      .getElementById("searchHerramientaModal")
-      .value.toLowerCase()
-      .trim();
-
-    this.herramientasFiltradas = this.herramientasDisponibles.filter(
-      (h) =>
-        h.codigo_inventario.toLowerCase().includes(search) ||
-        h.producto.toLowerCase().includes(search) ||
-        h.marca.toLowerCase().includes(search),
-    );
-
-    this._renderHerramientasDisponibles();
-  },
-  _renderHerramientasDisponibles() {
-    const sel = document.getElementById("pHerramienta");
-
-    sel.innerHTML = this.herramientasFiltradas
-      .map(
-        (h) =>
-          `<option value="${h.id_herramienta}">
-          ${h.codigo_inventario} - ${h.producto}
-        </option>`,
-      )
-      .join("");
+    return;
   },
 
   _filter() {
@@ -203,8 +163,7 @@ const PrestamosModule = {
       .trim();
 
     const filtrado = this.lista.filter((p) => {
-
-      const folio = `pr-${String(p.id_prestamo).padStart(4, '0')}`;
+      const folio = `pr-${String(p.id_prestamo).padStart(4, "0")}`;
       const idReal = String(p.id_prestamo);
       let estado = p.estado_prestamo;
       //comprobar si el estado necesita ser actualizado a 'ATRASADO'
@@ -227,11 +186,42 @@ const PrestamosModule = {
     this._render(filtrado);
   },
 
-  _addHerramienta() {
-    const select = document.getElementById("pHerramienta");
-    const id = select.value;
+  _buscarHerramientas(texto) {
+    const dropdown = document.getElementById("dropdownHerramientas");
 
-    // obtener objeto completo desde lista original
+    if (!texto.trim()) {
+      dropdown.classList.add("d-none");
+      return;
+    }
+
+    const resultados = this.herramientasDisponibles.filter(
+      (h) =>
+        h.codigo_inventario.toLowerCase().includes(texto.toLowerCase()) ||
+        h.producto.toLowerCase().includes(texto.toLowerCase()) ||
+        h.marca.toLowerCase().includes(texto.toLowerCase()),
+    );
+
+    if (!resultados.length) {
+      dropdown.innerHTML = `<div class="autocomplete-item">Sin resultados</div>`;
+      dropdown.classList.remove("d-none");
+      return;
+    }
+
+    dropdown.innerHTML = resultados
+      .map(
+        (h) => `
+    <div class="autocomplete-item"
+      onclick="PrestamosModule._agregarDesdeAutocomplete(${h.id_herramienta})">
+      <strong>${h.codigo_inventario}</strong> - ${h.producto}
+    </div>
+  `,
+      )
+      .join("");
+
+    dropdown.classList.remove("d-none");
+  },
+
+  _agregarDesdeAutocomplete(id) {
     const herramienta = this.herramientasDisponibles.find(
       (h) => h.id_herramienta == id,
     );
@@ -243,6 +233,12 @@ const PrestamosModule = {
     }
 
     this.prestamoActual.herramientas.push(herramienta);
+
+    // limpiar input
+    document.getElementById("searchHerramientaModal").value = "";
+
+    // ocultar dropdown
+    document.getElementById("dropdownHerramientas").classList.add("d-none");
 
     this._renderLista();
   },
@@ -542,10 +538,6 @@ const PrestamosModule = {
       ?.addEventListener("click", () => this.openNew());
 
     document
-      .getElementById("btnAddHerramienta")
-      ?.addEventListener("click", () => this._addHerramienta());
-
-    document
       .getElementById("btnSavePrestamo")
       ?.addEventListener("click", () => this._savePrestamo());
 
@@ -563,6 +555,24 @@ const PrestamosModule = {
 
     document
       .getElementById("searchHerramientaModal")
-      ?.addEventListener("input", () => this._filterHerramientasModal());
+      ?.addEventListener("input", (e) =>
+        this._buscarHerramientas(e.target.value),
+      );
+
+    document
+      .getElementById("searchHerramientaModal")
+      ?.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          const valor = e.target.value.trim().toLowerCase();
+
+          const match = this.herramientasDisponibles.find(
+            (h) => h.codigo_inventario.toLowerCase() === valor,
+          );
+
+          if (match) {
+            this._agregarDesdeAutocomplete(match.id_herramienta);
+          }
+        }
+      });
   },
 };

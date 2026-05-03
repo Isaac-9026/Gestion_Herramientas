@@ -198,24 +198,24 @@
       <!-- BUSCAR HERRAMIENTA -->
 
       <label class="form-label-custom mt-4">Agregar herramientas</label>
-      <div class="search-input-wrap mb-2">
-        <i class="bi bi-search search-icon"></i>
+      <div class="autocomplete-wrapper">
         <input
           type="text"
           id="searchHerramientaModal"
-          class="search-input"
-          placeholder="Buscar herramienta..."
+          class="input-custom"
+          placeholder="Buscar herramienta por código o nombre..."
+          autocomplete="off"
         />
-      </div>
-      <select id="pHerramienta" class="input-custom"></select>
 
-      <button class="btn-primary-action mt-2" id="btnAddHerramienta">
-        <i class="bi bi-plus-lg"></i> Agregar
-      </button>
+        <div
+          id="dropdownHerramientas"
+          class="autocomplete-dropdown d-none"
+        ></div>
+      </div>
 
       <!-- LISTA -->
       <div class="mt-4">
-        <h6>Herramientas seleccionadas</h6>
+        <h6>Herramientas seleccionadas:</h6>
         <ul id="listaHerramientas" class="list-group"></ul>
       </div>
     </div>
