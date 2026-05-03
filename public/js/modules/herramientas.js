@@ -5,6 +5,7 @@ const HerramientasModule = {
   productos: [],
   ubicaciones: [],
   currentProductoId: null,
+  herramientaSeleccionada: null,
 
   async init() {
     this._bindEvents();
@@ -29,25 +30,31 @@ const HerramientasModule = {
     }
   },
 
-  async openPrestar(id) {
-    try {
-      const herramienta = this.lista.find((h) => h.id_herramienta == id);
+  openPrestar(id) {
+    const h = this.lista.find((x) => x.id_herramienta === id);
 
-      if (!herramienta.disponible || herramienta.estado === "MALO") {
-        alert("Esta herramienta no está disponible para préstamo");
-        return;
-      }
+    if (!h) return alert("Herramienta no encontrada");
 
-      document.getElementById("prestamoHerramientaId").value = id;
-      document.getElementById("prestamoToolInfo").innerText =
-        `${herramienta.producto} (${herramienta.codigo_inventario})`;
-
-      await this._loadPersonas();
-
-      openOverlay("modalPrestarOverlay");
-    } catch (e) {
-      console.error(e);
+    if (!h.disponible || h.estado === "MALO") {
+      return alert("La herramienta no está disponible");
     }
+
+    this.herramientaSeleccionada = h;
+
+    // Pintar info
+    document.getElementById("infoHerramienta").innerHTML = `
+    <strong>${h.codigo_inventario}</strong><br>
+    ${h.producto} (${h.marca})
+  `;
+
+    // Limpiar campos
+    document.getElementById("rpMotivo").value = "";
+    document.getElementById("rpFechaLimite").value = "";
+    document.getElementById("rpPersona").value = "";
+
+    this._loadPersonas();
+
+    openOverlay("modalPrestamoRapido");
   },
 
   async _loadPersonas() {
@@ -55,60 +62,69 @@ const HerramientasModule = {
       const res = await fetch("/api/personas");
       const data = await res.json();
 
-      const select = document.getElementById("prestamoPersona");
+      const select = document.getElementById("rpPersona");
 
-      select.innerHTML =
-        `<option value="">Seleccionar persona</option>` +
-        data.data
-          .map(
-            (p) =>
-              `<option value="${p.id_persona}">
-          ${p.nombres}
-        </option>`,
-          )
-          .join("");
+      select.innerHTML = `
+  <option value="">Seleccione persona</option>
+  ${data.data
+    .map(
+      (p) => `
+    <option value="${p.id_persona}">
+      ${p.nombres}
+    </option>
+  `,
+    )
+    .join("")}
+`;
     } catch (e) {
       console.error(e);
     }
   },
 
-  async savePrestamo() {
-    const id_herramienta = document.getElementById(
-      "prestamoHerramientaId",
-    ).value;
-    const id_persona = document.getElementById("prestamoPersona").value;
-    const motivo = document.getElementById("prestamoMotivo").value;
+  async _savePrestamoRapido() {
+    const id_persona = document.getElementById("rpPersona").value;
+    const motivo = document.getElementById("rpMotivo").value;
+    const fecha_limite = document.getElementById("rpFechaLimite").value;
 
     if (!id_persona) {
-      alert("Selecciona una persona");
-      return;
+      return alert("Seleccione persona");
+    }
+
+    if (!fecha_limite) {
+      return alert("Seleccione fecha límite");
     }
 
     try {
       const res = await fetch("/api/prestamos", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          id_persona,
+          id_persona: Number(id_persona),
           id_usuario_despachador: 1,
           motivo,
-          herramientas: [id_herramienta],
+          fecha_limite,
+          herramientas: [this.herramientaSeleccionada.id_herramienta],
         }),
       });
 
       const data = await res.json();
 
-      if (!data.success) throw new Error(data.message);
+      if (!data.success) {
+        throw new Error(data.message);
+      }
 
-      closeOverlay("modalPrestarOverlay");
+      alert("Préstamo registrado");
+
+      closeOverlay("modalPrestamoRapido");
 
       await this.load();
-
-      alert("Préstamo registrado correctamente");
     } catch (e) {
       alert("Error: " + e.message);
     }
   },
+
   _fillProductos(selected = "") {
     const sel = document.getElementById("hProducto");
     if (!sel) return;
@@ -248,7 +264,7 @@ const HerramientasModule = {
                   : h.estado === "MALO"
                     ? "Herramienta en mal estado"
                     : "Prestar herramienta"
-                    }"
+              }"
                   ${!h.disponible || h.estado === "MALO" ? "disabled" : ""}
                 > 
               <i class="bi bi-box-arrow-up"></i>
@@ -470,30 +486,23 @@ const HerramientasModule = {
       ?.addEventListener("input", () => this._filter());
 
     document
-      .getElementById("modalHerramientaOverlay")
+      .getElementById("btnSavePrestamoRapido")
+      ?.addEventListener("click", () => this._savePrestamoRapido());
+
+    document
+      .getElementById("btnCancelPrestamoRapido")
+      ?.addEventListener("click", () => closeOverlay("modalPrestamoRapido"));
+
+    document
+      .getElementById("btnClosePrestamoRapido")
+      ?.addEventListener("click", () => closeOverlay("modalPrestamoRapido"));
+
+    document
+      .getElementById("modalPrestamoRapido")
       ?.addEventListener("click", (e) => {
-        if (e.target.id === "modalHerramientaOverlay") {
-          closeOverlay("modalHerramientaOverlay");
+        if (e.target.id === "modalPrestamoRapido") {
+          closeOverlay("modalPrestamoRapido");
         }
-      });
-
-    document
-      .getElementById("btnSavePrestar")
-      ?.addEventListener("click", () => this.savePrestamo());
-
-    document
-      .getElementById("btnCancelPrestar")
-      ?.addEventListener("click", () => closeOverlay("modalPrestarOverlay"));
-
-    document
-      .getElementById("btnClosePrestar")
-      ?.addEventListener("click", () => closeOverlay("modalPrestarOverlay"));
-
-    document
-      .getElementById("modalPrestarOverlay")
-      ?.addEventListener("click", (e) => {
-        if (e.target.id === "modalPrestarOverlay")
-          closeOverlay("modalPrestarOverlay");
       });
   },
 };

@@ -131,40 +131,61 @@
   </div>
 </div>
 
-<!-- modal para prestar -->
-<div class="modal-overlay" id="modalPrestarOverlay">
+<!-- Modal prestamo rapido -->
+<div class="modal-overlay" id="modalPrestamoRapido">
   <div class="modal-panel modal-sm">
     <div class="modal-header-custom">
       <div>
-        <div class="modal-title-custom">Prestar herramienta</div>
-        <div class="modal-subtitle" id="prestamoToolInfo"></div>
+        <div class="modal-title-custom">Préstamo Rápido</div>
+        <div class="modal-subtitle">Asignar herramienta rápidamente</div>
       </div>
-      <button class="btn-modal-close" id="btnClosePrestar">
+      <button class="btn-modal-close" id="btnClosePrestamoRapido">
         <i class="bi bi-x-lg"></i>
       </button>
     </div>
 
     <div class="modal-body-custom">
-      <input type="hidden" id="prestamoHerramientaId" />
+      <div class="mb-3">
+        <label class="form-label-custom">Herramienta</label>
+        <div
+          class="input-custom"
+          id="infoHerramienta"
+          style="background: #f5f5f5"
+        ></div>
+      </div>
 
-      <label class="form-label-custom">Persona</label>
-      <select id="prestamoPersona" class="input-custom">
-        <option value="">Seleccionar persona</option>
-      </select>
+      <div class="mb-3">
+        <label class="form-label-custom"
+          >Persona <span class="required">*</span></label
+        >
+        <select id="rpPersona" class="input-custom"></select>
+      </div>
 
-      <label class="form-label-custom mt-2">Motivo</label>
-      <textarea
-        id="prestamoMotivo"
-        class="input-custom"
-        rows="2"
-        placeholder="Ej: Práctica de taller"
-      ></textarea>
+      <div class="mb-3">
+        <label class="form-label-custom">Motivo</label>
+        <input
+          type="text"
+          id="rpMotivo"
+          class="input-custom"
+          placeholder="Ej: Trabajo en obra"
+        />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label-custom"
+          >Fecha límite <span class="required">*</span></label
+        >
+        <input type="date" id="rpFechaLimite" class="input-custom" />
+      </div>
     </div>
 
     <div class="modal-footer-custom">
-      <button class="btn-cancel" id="btnCancelPrestar">Cancelar</button>
-      <button class="btn-save" id="btnSavePrestar">
-        <i class="bi bi-check-lg"></i> Confirmar
+      <button class="btn-cancel" id="btnCancelPrestamoRapido">Cancelar</button>
+
+      <button class="btn-save" id="btnSavePrestamoRapido">
+        <span id="btnSavePrestamoRapidoText">
+          <i class="bi bi-check-lg me-1"></i> Registrar
+        </span>
       </button>
     </div>
   </div>
