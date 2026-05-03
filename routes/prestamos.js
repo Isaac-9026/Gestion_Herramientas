@@ -21,16 +21,14 @@ router.get("/", async (req, res) => {
     `);
 
     res.json({ success: true, data: rows });
-
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Error al obtener préstamos",
-      error: err.message
+      error: err.message,
     });
   }
 });
-
 
 //buscar prestamo x id y detalles
 router.get("/:id", async (req, res) => {
@@ -48,17 +46,18 @@ router.get("/:id", async (req, res) => {
       JOIN usuarios u ON p.id_usuario_despachador = u.id_usuario
       WHERE p.id_prestamo = ?
     `,
-      [id]
+      [id],
     );
 
     if (prestamo.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "Préstamo no encontrado"
+        message: "Préstamo no encontrado",
       });
     }
 
-    const [detalle] = await db.query(`
+    const [detalle] = await db.query(
+      `
       SELECT 
         dp.id_detalle_prestamo,
         dp.estado_entrega,
@@ -76,25 +75,25 @@ router.get("/:id", async (req, res) => {
     JOIN productos pr ON h.id_producto = pr.id_producto
     LEFT JOIN usuarios u ON dp.id_usuario_receptor = u.id_usuario
     WHERE dp.id_prestamo = ?
-    `, [id]);
+    `,
+      [id],
+    );
 
     res.json({
       success: true,
       data: {
         prestamo: prestamo[0],
-        detalle
-      }
+        detalle,
+      },
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Error al obtener préstamo",
-      error: err.message
+      error: err.message,
     });
   }
 });
-
 
 //para crear el prestamo
 router.post("/", async (req, res) => {
@@ -106,13 +105,13 @@ router.post("/", async (req, res) => {
       id_usuario_despachador,
       motivo,
       herramientas,
-      fecha_limite
+      fecha_limite,
     } = req.body;
 
     if (!herramientas || herramientas.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Debe incluir herramientas"
+        message: "Debe incluir herramientas",
       });
     }
 
@@ -121,17 +120,16 @@ router.post("/", async (req, res) => {
     const [prestamoResult] = await connection.query(
       `INSERT INTO prestamos (id_persona, id_usuario_despachador, motivo, fecha_limite)
        VALUES (?, ?, ?, ?)`,
-      [id_persona, id_usuario_despachador, motivo, fecha_limite]
+      [id_persona, id_usuario_despachador, motivo, fecha_limite],
     );
 
     const id_prestamo = prestamoResult.insertId;
 
     //Detalle
     for (const id_herramienta of herramientas) {
-
       const [rows] = await connection.query(
         "SELECT disponible FROM herramientas WHERE id_herramienta = ?",
-        [id_herramienta]
+        [id_herramienta],
       );
 
       if (rows.length === 0) {
@@ -146,12 +144,12 @@ router.post("/", async (req, res) => {
         `INSERT INTO detalle_prestamo 
         (id_prestamo, id_herramienta, estado_entrega)
         VALUES (?, ?, 'BUENO')`,
-        [id_prestamo, id_herramienta]
+        [id_prestamo, id_herramienta],
       );
 
       await connection.query(
         "UPDATE herramientas SET disponible = FALSE WHERE id_herramienta = ?",
-        [id_herramienta]
+        [id_herramienta],
       );
     }
 
@@ -160,23 +158,20 @@ router.post("/", async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Préstamo creado correctamente",
-      id_prestamo
+      id_prestamo,
     });
-
   } catch (err) {
     await connection.rollback();
 
     res.status(500).json({
       success: false,
       message: "Error al crear préstamo",
-      error: err.message
+      error: err.message,
     });
-
   } finally {
     connection.release();
   }
 });
-
 
 //put --- para actualizar y registrar devoluciones exactamente
 router.put("/devolver/:id_detalle", async (req, res) => {
@@ -190,7 +185,7 @@ router.put("/devolver/:id_detalle", async (req, res) => {
     //Obtener herramienta
     const [detalle] = await connection.query(
       "SELECT id_herramienta, id_prestamo FROM detalle_prestamo WHERE id_detalle_prestamo = ?",
-      [req.params.id_detalle]
+      [req.params.id_detalle],
     );
 
     if (detalle.length === 0) {
@@ -207,13 +202,21 @@ router.put("/devolver/:id_detalle", async (req, res) => {
            observaciones = ?,
            id_usuario_receptor = ?
        WHERE id_detalle_prestamo = ?`,
-      [estado_devolucion, observaciones, id_usuario_receptor, req.params.id_detalle]
+      [
+        estado_devolucion,
+        observaciones,
+        id_usuario_receptor,
+        req.params.id_detalle,
+      ],
     );
 
     //se libera la herramienta
     await connection.query(
-      "UPDATE herramientas SET disponible = TRUE WHERE id_herramienta = ?",
-      [id_herramienta]
+      `UPDATE herramientas 
+   SET disponible = TRUE, 
+       estado = ?
+   WHERE id_herramienta = ?`,
+      [estado_devolucion, id_herramienta],
     );
 
     //Ccomprobar si fue devuelto
@@ -221,13 +224,13 @@ router.put("/devolver/:id_detalle", async (req, res) => {
       `SELECT COUNT(*) as total
        FROM detalle_prestamo
        WHERE id_prestamo = ? AND fecha_devolucion IS NULL`,
-      [id_prestamo]
+      [id_prestamo],
     );
 
     if (pendientes[0].total === 0) {
       await connection.query(
         "UPDATE prestamos SET estado_prestamo = 'CERRADO' WHERE id_prestamo = ?",
-        [id_prestamo]
+        [id_prestamo],
       );
     }
 
@@ -235,59 +238,59 @@ router.put("/devolver/:id_detalle", async (req, res) => {
 
     res.json({
       success: true,
-      message: "Devolución registrada correctamente"
+      message: "Devolución registrada correctamente",
     });
-
   } catch (err) {
     await connection.rollback();
 
     res.status(500).json({
       success: false,
       message: "Error en devolución",
-      error: err.message
+      error: err.message,
     });
-
   } finally {
     connection.release();
   }
 });
-
 
 //eliminar
 router.delete("/:id", async (req, res) => {
   try {
     const [rows] = await db.query(
       "SELECT estado_prestamo FROM prestamos WHERE id_prestamo = ?",
-      [req.params.id]
+      [req.params.id],
     );
 
     if (rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "Préstamo no existe"
+        message: "Préstamo no existe",
       });
     }
 
-    if (rows[0].estado_prestamo === 'EN_CURSO') {
+    if (rows[0].estado_prestamo === "EN_CURSO") {
       return res.status(409).json({
         success: false,
-        message: "No se puede eliminar un préstamo activo"
+        message: "No se puede eliminar un préstamo activo",
       });
     }
 
-    await db.query("DELETE FROM detalle_prestamo WHERE id_prestamo = ?", [req.params.id]);
-    await db.query("DELETE FROM prestamos WHERE id_prestamo = ?", [req.params.id]);
+    await db.query("DELETE FROM detalle_prestamo WHERE id_prestamo = ?", [
+      req.params.id,
+    ]);
+    await db.query("DELETE FROM prestamos WHERE id_prestamo = ?", [
+      req.params.id,
+    ]);
 
     res.json({
       success: true,
-      message: "Préstamo eliminado correctamente"
+      message: "Préstamo eliminado correctamente",
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Error al eliminar préstamo",
-      error: err.message
+      error: err.message,
     });
   }
 });
