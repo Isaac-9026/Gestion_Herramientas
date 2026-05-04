@@ -2,11 +2,11 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
-//list de provedores
+// GET
 router.get("/", async (req, res) => {
   try {
     const [rows] = await db.query(
-      "SELECT * FROM proveedores ORDER BY id_proveedor DESC"
+      "SELECT * FROM proveedores ORDER BY razon_social ASC"
     );
 
     res.json({ success: true, data: rows });
@@ -15,178 +15,109 @@ router.get("/", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error al obtener proveedores",
-      error: err.message,
-    });
-  }
-});
-
-//x id
-router.get("/:id", async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      "SELECT * FROM proveedores WHERE id_proveedor = ?",
-      [req.params.id]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Proveedor no encontrado",
-      });
-    }
-
-    res.json({ success: true, data: rows[0] });
-
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: "Error al buscar proveedor",
-      error: err.message,
+      error: err.message
     });
   }
 });
 
 
+// POST
 router.post("/", async (req, res) => {
   try {
     const { ruc, razon_social, contacto, telefono, direccion } = req.body;
 
-    if (!razon_social || razon_social.trim() === "") {
+    // VALIDACIONES PRO
+    if (!ruc || !/^\d{11}$/.test(ruc)) {
       return res.status(400).json({
         success: false,
-        message: "La razón social es obligatoria",
+        message: "El RUC debe tener 11 dígitos numéricos"
       });
     }
 
-    // validar si el RUC  esta duplicado 
-    if (ruc) {
-      const [existe] = await db.query(
-        "SELECT id_proveedor FROM proveedores WHERE ruc = ?",
-        [ruc]
-      );
-
-      if (existe.length > 0) {
-        return res.status(409).json({
-          success: false,
-          message: "Ya existe un proveedor con ese RUC",
-        });
-      }
+    if (!razon_social || razon_social.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "La razón social es obligatoria"
+      });
     }
 
-    const [result] = await db.query(
-      `INSERT INTO proveedores (ruc, razon_social, contacto, telefono, direccion)
-       VALUES (?, ?, ?, ?, ?)`,
-      [ruc || null, razon_social, contacto || null, telefono || null, direccion || null]
+    await db.query(
+      `INSERT INTO proveedores 
+      (ruc, razon_social, contacto, telefono, direccion)
+      VALUES (?, ?, ?, ?, ?)`,
+      [ruc, razon_social, contacto, telefono, direccion]
     );
 
     res.status(201).json({
       success: true,
-      message: "Proveedor creado correctamente",
-      id: result.insertId,
+      message: "Proveedor creado correctamente"
     });
 
   } catch (err) {
+
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({
+        success: false,
+        message: "El RUC ya existe"
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: "Error al crear proveedor",
-      error: err.message,
+      error: err.message
     });
   }
 });
 
-//Actualizar
+
+// PUT (editar)
 router.put("/:id", async (req, res) => {
   try {
     const { ruc, razon_social, contacto, telefono, direccion } = req.body;
 
-    if (!razon_social || razon_social.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "La razón social es obligatoria",
-      });
-    }
-
-    // Validar si el  RUC  esta duplicado
-    if (ruc) {
-      const [existe] = await db.query(
-        "SELECT id_proveedor FROM proveedores WHERE ruc = ? AND id_proveedor != ?",
-        [ruc, req.params.id]
-      );
-
-      if (existe.length > 0) {
-        return res.status(409).json({
-          success: false,
-          message: "Ya existe otro proveedor con ese RUC",
-        });
-      }
-    }
-
-    const [result] = await db.query(
-      `UPDATE proveedores
+    await db.query(
+      `UPDATE proveedores 
        SET ruc = ?, razon_social = ?, contacto = ?, telefono = ?, direccion = ?
        WHERE id_proveedor = ?`,
-      [ruc || null, razon_social, contacto, telefono, direccion, req.params.id]
+      [ruc, razon_social, contacto, telefono, direccion, req.params.id]
     );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Proveedor no encontrado",
-      });
-    }
 
     res.json({
       success: true,
-      message: "Proveedor actualizado correctamente",
+      message: "Proveedor actualizado correctamente"
     });
 
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Error al actualizar proveedor",
-      error: err.message,
+      error: err.message
     });
   }
 });
 
-//eliminar al provedor
-router.delete("/:id", async (req, res) => {
+
+// SOFT DELETE
+router.put("/:id/estado", async (req, res) => {
   try {
-    //validar si tiene compras asociadas
-    const [compras] = await db.query(
-      "SELECT COUNT(*) as total FROM compras WHERE id_proveedor = ?",
-      [req.params.id]
+    const { estado } = req.body;
+
+    await db.query(
+      "UPDATE proveedores SET estado = ? WHERE id_proveedor = ?",
+      [estado, req.params.id]
     );
-
-    if (compras[0].total > 0) {
-      return res.status(409).json({
-        success: false,
-        message: "No se puede eliminar, tiene compras asociadas",
-      });
-    }
-
-    const [result] = await db.query(
-      "DELETE FROM proveedores WHERE id_proveedor = ?",
-      [req.params.id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Proveedor no encontrado",
-      });
-    }
 
     res.json({
       success: true,
-      message: "Proveedor eliminado correctamente",
+      message: "Estado actualizado"
     });
 
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: "Error al eliminar proveedor",
-      error: err.message,
+      message: "Error al cambiar estado",
+      error: err.message
     });
   }
 });

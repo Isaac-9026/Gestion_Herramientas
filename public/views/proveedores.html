@@ -1,0 +1,100 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Proveedores</h1>
+    <p class="page-subtitle">Gestión de proveedores</p>
+  </div>
+
+  <button class="btn-primary-action" id="btnNuevoProveedor">
+    <i class="bi bi-plus-lg"></i> Nuevo Proveedor
+  </button>
+</div>
+
+<div class="search-bar-row">
+  <div class="search-input-wrap">
+    <i class="bi bi-search"></i>
+    <input id="searchProveedor" class="search-input"
+      placeholder="Buscar por RUC o razón social..." />
+  </div>
+
+  <button class="btn-icon-outline" id="btnRefreshProveedor">
+    <i class="bi bi-arrow-clockwise"></i>
+  </button>
+</div>
+
+<div class="card-panel">
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>RUC</th>
+          <th>Razón Social</th>
+          <th>Contacto</th>
+          <th>Teléfono</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody id="bodyProveedores"></tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <span id="totalProveedoresLabel"></span>
+  </div>
+</div>
+
+<!-- MODAL PROVEEDOR -->
+<div class="modal-overlay" id="modalProveedorOverlay">
+  <div class="modal-panel">
+
+    <div class="modal-header-custom">
+      <div>
+        <div class="modal-title-custom" id="modalProveedorTitle">Nuevo Proveedor</div>
+        <div class="modal-subtitle">Completa los datos del proveedor</div>
+      </div>
+
+      <button class="btn-modal-close" id="btnCloseProveedor">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-custom">
+
+      <input type="hidden" id="provId">
+
+      <label class="form-label-custom">RUC *</label>
+      <input type="text" id="provRuc" class="input-custom" maxlength="11">
+      <div class="field-error" id="err-provRuc"></div>
+
+      <label class="form-label-custom">Razón Social *</label>
+      <input type="text" id="provNombre" class="input-custom">
+      <div class="field-error" id="err-provNombre"></div>
+
+      <label class="form-label-custom">Contacto</label>
+      <input type="text" id="provContacto" class="input-custom">
+
+      <label class="form-label-custom">Teléfono</label>
+      <input type="text" id="provTelefono" class="input-custom">
+
+      <label class="form-label-custom">Dirección</label>
+      <input type="text" id="provDireccion" class="input-custom">
+
+    </div>
+
+    <div class="modal-footer-custom">
+      <button class="btn-cancel" id="btnCancelProveedor">Cancelar</button>
+
+      <button class="btn-save" id="btnSaveProveedor">
+        <span id="btnSaveProveedorText">
+          <i class="bi bi-check-lg me-1"></i> Guardar
+        </span>
+        <span id="btnSaveProveedorSpinner" class="d-none">
+          <div class="spinner-sm"></div>
+        </span>
+      </button>
+    </div>
+
+  </div>
+</div>
