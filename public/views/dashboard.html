@@ -1,61 +1,11 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Dashboard</h1>
-    <p class="page-subtitle">Resumen operativo del inventario y préstamos</p>
+    <p class="page-subtitle">Resumen operativo del herramientas y préstamos</p>
   </div>
 </div>
 
 <div id="dashboardAlertWrap"></div>
-
-<div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-icon" style="--c: #6366f1">
-      <i class="bi bi-tools"></i>
-    </div>
-    <div class="stat-value" id="stat-total-herramientas">—</div>
-    <div class="stat-label">Herramientas</div>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon" style="--c: #10b981">
-      <i class="bi bi-check-circle-fill"></i>
-    </div>
-    <div class="stat-value" id="stat-herramientas-disponibles">—</div>
-    <div class="stat-label">Disponibles</div>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon" style="--c: #f59e0b">
-      <i class="bi bi-arrow-return-left"></i>
-    </div>
-    <div class="stat-value" id="stat-herramientas-prestadas">—</div>
-    <div class="stat-label">Prestadas</div>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon" style="--c: #ef4444">
-      <i class="bi bi-exclamation-triangle-fill"></i>
-    </div>
-    <div class="stat-value" id="stat-herramientas-malo">—</div>
-    <div class="stat-label">En mal estado</div>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon" style="--c: #06b6d4">
-      <i class="bi bi-journal-check"></i>
-    </div>
-    <div class="stat-value" id="stat-prestamos-activos">—</div>
-    <div class="stat-label">Préstamos activos</div>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon" style="--c: #dc2626">
-      <i class="bi bi-clock-history"></i>
-    </div>
-    <div class="stat-value" id="stat-prestamos-atrasados">—</div>
-    <div class="stat-label">Atrasados</div>
-  </div>
-</div>
 
 <div class="row g-4 mt-1">
   <div class="col-lg-7">
@@ -95,24 +45,23 @@
     <div class="card-panel">
       <div class="panel-header">
         <span class="panel-title">
-          <i class="bi bi-pie-chart-fill me-2"></i>Disponibilidad de
-          herramientas
+          <i class="bi bi-pie-chart-fill me-2"></i>Estado de herramientas
         </span>
       </div>
-
-      <div class="d-flex flex-column align-items-center gap-3 py-3">
-        <div id="chartHerramientasDonut"></div>
-        <div class="w-100" id="legendHerramientas"></div>
+      <div style="height: 260px">
+        <canvas id="chartHerramientas"></canvas>
       </div>
     </div>
 
     <div class="card-panel mt-4">
       <div class="panel-header">
         <span class="panel-title">
-          <i class="bi bi-diagram-3-fill me-2"></i>Catálogos base
+          <i class="bi bi-bar-chart-fill me-2"></i>Préstamos
         </span>
       </div>
-      <div id="catalogosBase"></div>
+      <div style="height: 260px">
+        <canvas id="chartPrestamos"></canvas>
+      </div>
     </div>
   </div>
 </div>
