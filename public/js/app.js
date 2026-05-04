@@ -20,6 +20,13 @@ const AppState = {
   personal:  [],
   proveedores:  [],
   productos:  [],
+  catalogoBase: {
+    categorias: [],
+    marcas: [],
+    ubicaciones: [],
+    areas: [],
+    roles: []
+  },
   deleteTarget: { type: null, id: null, name: null, onConfirm: null },
 };
 

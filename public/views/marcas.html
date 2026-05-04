@@ -1,0 +1,107 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Marcas</h1>
+    <p class="page-subtitle">Gestión de marcas del sistema</p>
+  </div>
+
+  <button class="btn-primary-action" id="btnNuevoCatalogo">
+    <i class="bi bi-plus-lg"></i> Nueva Marca
+  </button>
+</div>
+
+<div class="search-bar-row">
+  <div class="search-input-wrap">
+    <i class="bi bi-search search-icon"></i>
+    <input
+      type="text"
+      id="searchCatalogo"
+      class="search-input"
+      placeholder="Buscar por nombre o estado…"
+    />
+  </div>
+
+  <button class="btn-icon-outline" id="btnRefreshCatalogo" title="Recargar">
+    <i class="bi bi-arrow-clockwise"></i>
+  </button>
+</div>
+
+<div class="card-panel">
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nombre</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody id="bodyCatalogo">
+        <tr>
+          <td colspan="4" class="text-center py-5">
+            <div class="spinner-custom"></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <span class="text-muted text-sm" id="totalCatalogoLabel">Cargando…</span>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalCatalogoOverlay">
+  <div class="modal-panel modal-sm">
+    <div class="modal-header-custom">
+      <div>
+        <div class="modal-title-custom" id="modalCatalogoTitle">
+          Nueva Marca
+        </div>
+        <div class="modal-subtitle" id="modalCatalogoSubtitle">
+          Completa los datos del registro
+        </div>
+      </div>
+
+      <button class="btn-modal-close" id="btnCloseModalCatalogo">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-custom">
+      <form id="formCatalogo" novalidate>
+        <input type="hidden" id="catalogoId" />
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label-custom">
+              Nombre <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="catalogoNombre"
+              class="input-custom"
+              placeholder="Ej: Taladros"
+              maxlength="100"
+            />
+            <div class="field-error" id="err-catalogoNombre"></div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer-custom">
+      <button class="btn-cancel" id="btnCancelCatalogo">Cancelar</button>
+      <button class="btn-save" id="btnSaveCatalogo">
+        <span id="btnSaveCatalogoText">
+          <i class="bi bi-check-lg me-1"></i> Guardar
+        </span>
+        <span id="btnSaveCatalogoSpinner" class="d-none">
+          <div class="spinner-sm"></div>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

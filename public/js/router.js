@@ -23,25 +23,66 @@
 ════════════════════════════════════════════ */
 const ROUTES = {
   dashboard: {
-    title:  'Dashboard',
-    view:   '/views/dashboard.html',   // HTML de la vista
-    module: () => DashboardModule,     // Módulo JS que la controla
+    title: 'Dashboard',
+    view: '/views/dashboard.html',
+    module: () => DashboardModule,
   },
   herramientas: {
-    title:  'Herramientas',
-    view:   '/views/herramientas.html',
+    title: 'Herramientas',
+    view: '/views/herramientas.html',
     module: () => HerramientasModule,
   },
   prestamos: {
-    title:  'Prestamos',
-    view:   '/views/prestamos.html',
+    title: 'Préstamos',
+    view: '/views/prestamos.html',
     module: () => PrestamosModule,
   },
   personal: {
-    title:  'Personal',
-    view:   '/views/personal.html',
+    title: 'Personal',
+    view: '/views/personal.html',
     module: () => PersonalModule,
-  }
+  },
+  productos: {
+    title: 'Productos',
+    view: '/views/productos.html',
+    module: () => ProductosModule,
+  },
+  proveedores: {
+    title: 'Proveedores',
+    view: '/views/proveedores.html',
+    module: () => ProveedoresModule,
+  },
+  compras: {
+    title: 'Compras',
+    view: '/views/compras.html',
+    module: () => ComprasModule,
+  },
+  categorias: {
+    title: 'Categorías',
+    view: '/views/categorias.html',
+    module: () => CategoriasModule,
+  },
+  marcas: {
+    title: 'Marcas',
+    view: '/views/marcas.html',
+    module: () => MarcasModule,
+  },
+  ubicaciones: {
+    title: 'Ubicaciones',
+    view: '/views/ubicaciones.html',
+    module: () => UbicacionesModule,
+  },
+  areas: {
+    title: 'Áreas',
+    view: '/views/areas.html',
+    module: () => AreasModule,
+  },
+  roles: {
+    title: 'Roles',
+    view: '/views/roles.html',
+    module: () => RolesModule,
+  },
+  
   // ── Ejemplo de cómo agregar una ruta nueva en el futuro ──
   // clientes: {
   //   title:  'Clientes',
