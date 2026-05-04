@@ -4,6 +4,7 @@ const cors = require("cors");
 const path = require("path");
 
 const pool = require("./config/db");
+const createCatalogRouter = require("./routes/catalogoBase");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,9 +28,51 @@ app.use("/api/prestamos", require("./routes/prestamos"));
 app.use("/api/personas", require("./routes/personas"));
 app.use("/api/usuarios", require("./routes/usuarios"));
 app.use("/api/proveedores", require("./routes/proveedores"));
-app.use("/api/ubicaciones", require("./routes/ubicaciones"));
-app.use("/api/areas", require("./routes/areas"));
 app.use("/api/empleados", require("./routes/empleados"));
+app.use(
+  "/api/categorias",
+  createCatalogRouter({
+    table: "categorias",
+    idField: "id_categoria",
+    label: "Categoría",
+  }),
+);
+
+app.use(
+  "/api/marcas",
+  createCatalogRouter({
+    table: "marcas",
+    idField: "id_marca",
+    label: "Marca",
+  }),
+);
+
+app.use(
+  "/api/ubicaciones",
+  createCatalogRouter({
+    table: "ubicaciones",
+    idField: "id_ubicacion",
+    label: "Ubicación",
+  }),
+);
+
+app.use(
+  "/api/areas",
+  createCatalogRouter({
+    table: "areas",
+    idField: "id_area",
+    label: "Área",
+  }),
+);
+
+app.use(
+  "/api/roles",
+  createCatalogRouter({
+    table: "roles",
+    idField: "id_rol",
+    label: "Rol",
+  }),
+);
 
 // ─────────────────────────────
 // STATIC DESPUÉS
