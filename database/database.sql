@@ -85,6 +85,9 @@ CREATE TABLE IF NOT EXISTS productos (
     FOREIGN KEY (id_categoria) REFERENCES categorias (id_categoria)
 ) ENGINE = InnoDB;
 
+ALTER TABLE productos 
+ADD estado ENUM('ACTIVO', 'INACTIVO') DEFAULT 'ACTIVO';
+
 CREATE TABLE IF NOT EXISTS proveedores (
     id_proveedor INT AUTO_INCREMENT PRIMARY KEY,
     ruc VARCHAR(20) UNIQUE,

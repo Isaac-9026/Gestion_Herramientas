@@ -1,0 +1,86 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Productos</h1>
+    <p class="page-subtitle">Catálogo base de herramientas</p>
+  </div>
+
+  <button class="btn-primary-action" id="btnNuevoProducto">
+    <i class="bi bi-plus-lg"></i> Nuevo Producto
+  </button>
+</div>
+
+<div class="search-bar-row">
+  <div class="search-input-wrap">
+    <i class="bi bi-search search-icon"></i>
+    <input
+      id="searchProducto"
+      class="search-input"
+      placeholder="Buscar producto..."
+    />
+  </div>
+
+  <button class="btn-icon-outline" id="btnRefreshProductos">
+    <i class="bi bi-arrow-clockwise"></i>
+  </button>
+</div>
+
+<div class="card-panel">
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Producto</th>
+          <th>Marca / Categoría</th>
+          <th>Estado</th>
+          <th>Stock</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody id="bodyProductos"></tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <span id="totalProductosLabel"></span>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalProductoOverlay">
+  <div class="modal-panel modal-sm">
+    <div class="modal-header-custom">
+      <div>
+        <div class="modal-title-custom" id="modalProductoTitle"></div>
+        <div class="modal-subtitle">Completa los datos</div>
+      </div>
+
+      <button class="btn-modal-close" id="btnCloseProducto">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-custom">
+      <input type="hidden" id="productoId" />
+
+      <label class="form-label-custom">Nombre *</label>
+      <input id="pNombre" class="input-custom" />
+
+      <label class="form-label-custom">Modelo</label>
+      <input id="pModelo" class="input-custom" />
+
+      <label class="form-label-custom">Marca *</label>
+      <select id="pMarca" class="input-custom"></select>
+
+      <label class="form-label-custom">Categoría *</label>
+      <select id="pCategoria" class="input-custom"></select>
+    </div>
+
+    <div class="modal-footer-custom">
+      <button class="btn-cancel" id="btnCancelProducto">Cancelar</button>
+
+      <button class="btn-save" id="btnSaveProducto">Guardar</button>
+    </div>
+  </div>
+</div>
