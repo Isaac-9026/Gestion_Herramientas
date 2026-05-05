@@ -986,3 +986,22 @@ a { text-decoration: none; color: inherit; }
 .autocomplete-item:last-child {
   border-bottom: none;
 }
+
+
+/* scroll navbar */
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+}
+
+.sidebar-nav {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(105, 112, 138) transparent;
+}
+
+
+/* STYLES PARA LOGIN BASE */

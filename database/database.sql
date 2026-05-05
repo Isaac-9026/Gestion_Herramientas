@@ -74,6 +74,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
     FOREIGN KEY (updated_by) REFERENCES usuarios (id_usuario)
 ) ENGINE = InnoDB;
 
+UPDATE usuarios
+SET password_hash = '$2b$10$WlCdCXQJ/MwM6MkkRCSl5e.7sanvHYr9ugIoQiV2/FYeUQFp2FEum'
+WHERE username = 'admin';
+
+
 CREATE TABLE IF NOT EXISTS productos (
     id_producto INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(150) NOT NULL,

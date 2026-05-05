@@ -29,6 +29,7 @@ app.use("/api/personas", require("./routes/personas"));
 app.use("/api/usuarios", require("./routes/usuarios"));
 app.use("/api/proveedores", require("./routes/proveedores"));
 app.use("/api/empleados", require("./routes/empleados"));
+app.use('/api/auth', require('./routes/auth'));
 app.use(
   "/api/categorias",
   createCatalogRouter({

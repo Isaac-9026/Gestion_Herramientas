@@ -9,13 +9,37 @@
    HTTP HELPER
 ════════════════════════════════════════════ */
 async function http(url, method = 'GET', body = null) {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+
+  //Aqui se  agrega el token
+  const token = localStorage.getItem('token');
+  if (token) {
+    opts.headers.Authorization = `Bearer ${token}`;
+  }
+
   if (body) opts.body = JSON.stringify(body);
+
   const res  = await fetch(url, opts);
   const data = await res.json();
+
   if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
+
   return data;
 }
+
+//cerrar csesion
+function logout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('auth_user');
+
+  window.location.href = '/login.html';
+}
+
 
 /* ════════════════════════════════════════════
    TOASTS

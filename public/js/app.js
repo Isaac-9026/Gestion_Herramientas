@@ -9,6 +9,18 @@
 
 'use strict';
 
+document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  DeleteModal.render();
+  Router.init();
+  Router.navigateTo('dashboard');
+});
+
 /* ════════════════════════════════════════════
    ESTADO GLOBAL COMPARTIDO
    Los módulos leen/escriben aquí para compartir
