@@ -2,242 +2,249 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
-//get para todas las compras
-router.get("/", async (req, res) => {
+/*get /opciones  para provedores y productos activos para llenar selects */
+router.get("/opciones", async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT c.*, p.razon_social AS proveedor, u.username AS usuario
-      FROM compras c
-      LEFT JOIN proveedores p ON c.id_proveedor = p.id_proveedor
-      LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario
-      ORDER BY c.id_compra DESC
+    const [proveedores] = await db.query(`
+      SELECT id_proveedor, razon_social
+      FROM proveedores
+      WHERE estado = 'ACTIVO'
+      ORDER BY razon_social ASC
     `);
 
-    res.json({ success: true, data: rows });
+    const [productos] = await db.query(`
+      SELECT id_producto, nombre, modelo
+      FROM productos
+      WHERE estado = 'ACTIVO'
+      ORDER BY nombre ASC
+    `);
 
+    res.json({
+      success: true,
+      data: {
+        proveedores,
+        productos,
+      },
+    });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: "Error al obtener compras",
-      error: err.message
+      message: "Error al obtener opciones de compras",
+      error: err.message,
     });
   }
 });
 
+//  Historial de compras
+router.get("/", async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT
+        c.id_compra,
+        c.num_factura,
+        c.total_compra,
+        DATE_FORMAT(c.fecha_compra, '%d/%m/%Y %H:%i') AS fecha_formateada,
+        p.razon_social,
+        COALESCE(u.username, '—') AS username,
+        COUNT(dc.id_detalle_compra) AS total_items
+      FROM compras c
+      INNER JOIN proveedores p ON c.id_proveedor = p.id_proveedor
+      LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario
+      LEFT JOIN detalle_compra dc ON c.id_compra = dc.id_compra
+      GROUP BY
+        c.id_compra,
+        c.num_factura,
+        c.total_compra,
+        c.fecha_compra,
+        p.razon_social,
+        u.username
+      ORDER BY c.id_compra DESC
+    `);
 
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error al obtener compras",
+      error: err.message,
+    });
+  }
+});
 
-//get compra x id y detalle
+//Detalle de una compra
 router.get("/:id", async (req, res) => {
   try {
     const id = req.params.id;
 
     const [compra] = await db.query(
-      "SELECT * FROM compras WHERE id_compra = ?",
-      [id]
+      `
+      SELECT
+        c.id_compra,
+        c.num_factura,
+        c.total_compra,
+        DATE_FORMAT(c.fecha_compra, '%d/%m/%Y %H:%i') AS fecha_formateada,
+        p.razon_social,
+        COALESCE(u.username, '—') AS username
+      FROM compras c
+      INNER JOIN proveedores p ON c.id_proveedor = p.id_proveedor
+      LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario
+      WHERE c.id_compra = ?
+    `,
+      [id],
     );
 
     if (compra.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "Compra no encontrada"
+        message: "Compra no encontrada",
       });
     }
 
-    //detalle + producto
-    const [detalle] = await db.query(`
-      SELECT dc.*, pr.nombre, pr.modelo
+    const [detalle] = await db.query(
+      `
+      SELECT
+        dc.id_detalle_compra,
+        dc.id_producto,
+        dc.cantidad,
+        dc.precio_unitario,
+        (dc.cantidad * dc.precio_unitario) AS subtotal,
+        pr.nombre,
+        pr.modelo
       FROM detalle_compra dc
-      JOIN productos pr ON dc.id_producto = pr.id_producto
+      INNER JOIN productos pr ON dc.id_producto = pr.id_producto
       WHERE dc.id_compra = ?
-    `, [id]);
+      ORDER BY dc.id_detalle_compra ASC
+    `,
+      [id],
+    );
 
     res.json({
       success: true,
       data: {
         compra: compra[0],
-        detalle
-      }
+        detalle,
+      },
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: "Error al obtener compra",
-      error: err.message
+      message: "Error al obtener detalle de compra",
+      error: err.message,
     });
   }
 });
 
-
-//post para registrar coompras y generar herramientas
+//Registro maestro-detalle con transacción
 router.post("/", async (req, res) => {
-  const connection = await db.getConnection();
+  const conn = await db.getConnection();
 
   try {
-    const { num_factura, id_proveedor, id_usuario, detalles } = req.body;
+    const { num_factura, id_proveedor, detalles } = req.body;
 
-    //validacion basica
-    if (!detalles || detalles.length === 0) {
+    if (!num_factura || num_factura.trim() === "") {
       return res.status(400).json({
         success: false,
-        message: "Debe incluir detalles"
+        message: "El número de factura es obligatorio",
       });
     }
 
-    await connection.beginTransaction();
+    if (!id_proveedor) {
+      return res.status(400).json({
+        success: false,
+        message: "El proveedor es obligatorio",
+      });
+    }
 
-    // insertar compra
-    const [compraResult] = await connection.query(
-      `INSERT INTO compras (num_factura, id_proveedor, id_usuario)
-       VALUES (?, ?, ?)`,
-      [num_factura, id_proveedor, id_usuario]
+    if (!Array.isArray(detalles) || detalles.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Debe agregar al menos un detalle",
+      });
+    }
+
+    // Calcular total en servidor
+    const totalCalculado = detalles.reduce((sum, item) => {
+      const cantidad = Number(item.cantidad || 0);
+      const precio = Number(item.precio_unitario || 0);
+      return sum + cantidad * precio;
+    }, 0);
+
+    await conn.beginTransaction();
+
+    // validar proveedor activo
+    const [proveedorOk] = await conn.query(
+      `SELECT id_proveedor
+       FROM proveedores
+       WHERE id_proveedor = ? AND estado = 'ACTIVO'`,
+      [id_proveedor],
+    );
+
+    if (proveedorOk.length === 0) {
+      throw new Error("Proveedor no existe o está inactivo");
+    }
+
+    //insertar compra
+    const [compraResult] = await conn.query(
+      `INSERT INTO compras (num_factura, total_compra, id_proveedor, id_usuario)
+       VALUES (?, ?, ?, ?)`,
+      [num_factura.trim(), totalCalculado, id_proveedor, 1], //temporalmente idusuario = 1
     );
 
     const id_compra = compraResult.insertId;
 
-    //insertar detalles + generar herramientas
+    //insertar detalle
     for (const item of detalles) {
-      const { id_producto, cantidad, precio_unitario } = item;
+      const id_producto = Number(item.id_producto);
+      const cantidad = Number(item.cantidad);
+      const precio_unitario = Number(item.precio_unitario);
 
-      //insertar detalle
-      const [detalleResult] = await connection.query(
-        `INSERT INTO detalle_compra 
-        (id_compra, id_producto, cantidad, precio_unitario)
-        VALUES (?, ?, ?, ?)`,
-        [id_compra, id_producto, cantidad, precio_unitario]
-      );
-
-      const id_detalle = detalleResult.insertId;
-
-      //generar herramientas automaticamente
-      for (let i = 0; i < cantidad; i++) {
-        const codigo = `AUTO-${id_producto}-${Date.now()}-${i}`;
-
-        await connection.query(
-          `INSERT INTO herramientas 
-          (id_producto, id_detalle_compra, codigo_inventario, estado, disponible)
-          VALUES (?, ?, ?, 'BUENO', TRUE)`,
-          [id_producto, id_detalle, codigo]
+      if (!id_producto || !cantidad || !precio_unitario) {
+        throw new Error(
+          "Detalle inválido. Verifique producto, cantidad y precio.",
         );
       }
+
+      if (cantidad <= 0 || precio_unitario <= 0) {
+        throw new Error("Cantidad y precio deben ser mayores a cero");
+      }
+
+      //validar producto activo
+      const [productoOk] = await conn.query(
+        `SELECT id_producto
+         FROM productos
+         WHERE id_producto = ? AND estado = 'ACTIVO'`,
+        [id_producto],
+      );
+
+      if (productoOk.length === 0) {
+        throw new Error(`El producto ${id_producto} no existe o está inactivo`);
+      }
+
+      await conn.query(
+        `INSERT INTO detalle_compra (id_compra, id_producto, cantidad, precio_unitario)
+         VALUES (?, ?, ?, ?)`,
+        [id_compra, id_producto, cantidad, precio_unitario],
+      );
     }
 
-    await connection.commit();
+    await conn.commit();
 
     res.status(201).json({
       success: true,
       message: "Compra registrada correctamente",
-      id_compra
+      id_compra,
+      total_compra: totalCalculado,
     });
-
   } catch (err) {
-    await connection.rollback();
+    await conn.rollback();
 
     res.status(500).json({
       success: false,
       message: "Error al registrar compra",
-      error: err.message
+      error: err.message,
     });
-
   } finally {
-    connection.release();
-  }
-});
-
-
-//actualizar
-router.put("/:id", async (req, res) => {
-  try {
-    const { num_factura, id_proveedor } = req.body;
-
-    const [result] = await db.query(
-      `UPDATE compras 
-       SET num_factura = ?, id_proveedor = ?
-       WHERE id_compra = ?`,
-      [num_factura, id_proveedor, req.params.id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Compra no encontrada"
-      });
-    }
-
-    res.json({
-      success: true,
-      message: "Compra actualizada (solo cabecera)"
-    });
-
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: "Error al actualizar compra",
-      error: err.message
-    });
-  }
-});
-
-
-router.delete("/:id", async (req, res) => {
-  const connection = await db.getConnection();
-
-  try {
-    await connection.beginTransaction();
-
-    //validar si tiene herramientas generadas
-    const [tools] = await connection.query(
-      `SELECT COUNT(*) as total 
-       FROM herramientas h
-       JOIN detalle_compra dc ON h.id_detalle_compra = dc.id_detalle_compra
-       WHERE dc.id_compra = ?`,
-      [req.params.id]
-    );
-
-    if (tools[0].total > 0) {
-      return res.status(409).json({
-        success: false,
-        message: "No se puede eliminar, ya generó herramientas"
-      });
-    }
-
-    //eliminar detalle
-    await connection.query(
-      "DELETE FROM detalle_compra WHERE id_compra = ?",
-      [req.params.id]
-    );
-
-    //delete compra
-    const [result] = await connection.query(
-      "DELETE FROM compras WHERE id_compra = ?",
-      [req.params.id]
-    );
-
-    await connection.commit();
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Compra no encontrada"
-      });
-    }
-
-    res.json({
-      success: true,
-      message: "Compra eliminada correctamente"
-    });
-
-  } catch (err) {
-    await connection.rollback();
-
-    res.status(500).json({
-      success: false,
-      message: "Error al eliminar compra",
-      error: err.message
-    });
-
-  } finally {
-    connection.release();
+    conn.release();
   }
 });
 

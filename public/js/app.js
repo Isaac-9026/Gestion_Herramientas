@@ -20,6 +20,7 @@ const AppState = {
   personal:  [],
   proveedores:  [],
   productos:  [],
+  compras:[],
   catalogoBase: {
     categorias: [],
     marcas: [],
