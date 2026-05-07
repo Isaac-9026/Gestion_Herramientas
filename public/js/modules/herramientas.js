@@ -15,9 +15,14 @@ const HerramientasModule = {
 
   async _loadCatalogs() {
     try {
+      const token = localStorage.getItem("token");
       const [prodRes, ubiRes] = await Promise.all([
-        fetch("/api/productos"),
-        fetch("/api/ubicaciones"),
+        fetch("/api/productos", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("/api/ubicaciones", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       const prodData = await prodRes.json();
@@ -59,7 +64,10 @@ const HerramientasModule = {
 
   async _loadPersonas() {
     try {
-      const res = await fetch("/api/personas");
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/personas", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
 
       const select = document.getElementById("rpPersona");
@@ -81,78 +89,69 @@ const HerramientasModule = {
     }
   },
 
-async _savePrestamoRapido() {
+  async _savePrestamoRapido() {
+    const id_persona = document.getElementById("rpPersona").value;
+    const motivo = document.getElementById("rpMotivo").value.trim();
+    const fecha_limite = document.getElementById("rpFechaLimite").value;
 
-  const id_persona   = document.getElementById("rpPersona").value;
-  const motivo       = document.getElementById("rpMotivo").value.trim();
-  const fecha_limite = document.getElementById("rpFechaLimite").value;
-
-  if (!id_persona) {
-    return showToast("Seleccione una persona", "warning");
-  }
-
-  if (!fecha_limite) {
-    return showToast("Seleccione fecha límite", "warning");
-  }
-
-  if (!this.herramientaSeleccionada) {
-    return showToast("No hay herramienta seleccionada", "error");
-  }
-
-  try {
-
-    setLoading(
-      "btnSavePrestamoRapido",
-      "btnSavePrestamoRapidoText",
-      "btnSavePrestamoRapidoSpinner",
-      true
-    );
-
-    const token = localStorage.getItem("token");
-
-    const res = await fetch("/api/prestamos", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        id_persona: Number(id_persona),
-        motivo,
-        fecha_limite,
-        herramientas: [
-          this.herramientaSeleccionada.id_herramienta
-        ],
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-      throw new Error(data.message || "No se pudo registrar el préstamo");
+    if (!id_persona) {
+      return showToast("Seleccione una persona", "warning");
     }
 
-    showToast("Préstamo registrado correctamente", "success");
+    if (!fecha_limite) {
+      return showToast("Seleccione fecha límite", "warning");
+    }
 
-    closeOverlay("modalPrestamoRapido");
+    if (!this.herramientaSeleccionada) {
+      return showToast("No hay herramienta seleccionada", "error");
+    }
 
-    await this.load();
+    try {
+      setLoading(
+        "btnSavePrestamoRapido",
+        "btnSavePrestamoRapidoText",
+        "btnSavePrestamoRapidoSpinner",
+        true,
+      );
 
-  } catch (e) {
+      const token = localStorage.getItem("token");
 
-    showToast(e.message, "error");
+      const res = await fetch("/api/prestamos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          id_persona: Number(id_persona),
+          motivo,
+          fecha_limite,
+          herramientas: [this.herramientaSeleccionada.id_herramienta],
+        }),
+      });
 
-  } finally {
+      const data = await res.json();
 
-    setLoading(
-      "btnSavePrestamoRapido",
-      "btnSavePrestamoRapidoText",
-      "btnSavePrestamoRapidoSpinner",
-      false
-    );
+      if (!data.success) {
+        throw new Error(data.message || "No se pudo registrar el préstamo");
+      }
 
-  }
-},
+      showToast("Préstamo registrado correctamente", "success");
+
+      closeOverlay("modalPrestamoRapido");
+
+      await this.load();
+    } catch (e) {
+      showToast(e.message, "error");
+    } finally {
+      setLoading(
+        "btnSavePrestamoRapido",
+        "btnSavePrestamoRapidoText",
+        "btnSavePrestamoRapidoSpinner",
+        false,
+      );
+    }
+  },
 
   _fillProductos(selected = "") {
     const sel = document.getElementById("hProducto");
@@ -193,7 +192,10 @@ async _savePrestamoRapido() {
       `<tr><td colspan="7" class="text-center py-5"><div class="spinner-custom"></div></td></tr>`;
 
     try {
-      const res = await fetch("/api/herramientas");
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/herramientas", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
 
       this.lista = data.data || [];
@@ -365,8 +367,10 @@ async _savePrestamoRapido() {
       const current = this.lista.find(
         (h) => String(h.id_herramienta) === String(id),
       );
-
-      const res = await fetch(`/api/herramientas/${id}`);
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/herramientas/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
 
       if (!data.success) {
@@ -423,15 +427,18 @@ async _savePrestamoRapido() {
     };
 
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch(
         isEdit ? `/api/herramientas/${id}` : "/api/herramientas",
         {
           method: isEdit ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(body),
         },
       );
-
       const json = await res.json();
 
       if (!json.success) {
@@ -449,8 +456,10 @@ async _savePrestamoRapido() {
   confirmDel(id, name) {
     DeleteModal.open("herramienta", id, name, async () => {
       try {
+        const token = localStorage.getItem("token");
         const res = await fetch(`/api/herramientas/${id}`, {
           method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const json = await res.json();

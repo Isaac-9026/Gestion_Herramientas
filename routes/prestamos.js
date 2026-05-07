@@ -104,11 +104,13 @@ router.post("/", async (req, res) => {
   try {
     const {
       id_persona,
-      id_usuario_despachador,
       motivo,
       herramientas,
       fecha_limite,
     } = req.body;
+    
+    //obtener usuario desde token
+    const id_usuario_despachador = req.user.id_usuario;
 
     if (!herramientas || herramientas.length === 0) {
       return res.status(400).json({
