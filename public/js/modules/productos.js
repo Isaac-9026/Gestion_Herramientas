@@ -11,20 +11,20 @@ const ProductosModule = {
   },
 
   async load() {
-  const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-  const res = await fetch("/api/productos", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+    const res = await fetch("/api/productos", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  this.lista = data.data || data.productos || data || [];
+    this.lista = data.data || data.productos || data || [];
 
-  this._render(this.lista);
-},
+    this._render(this.lista);
+  },
 
   _render(lista) {
     const tbody = document.getElementById("bodyProductos");
@@ -98,7 +98,12 @@ const ProductosModule = {
     clearErrors(["pNombre", "pMarca", "pCategoria"]);
 
     if (!this.opciones) {
-      const res = await fetch("/api/productos/opciones");
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/productos/opciones", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
       this.opciones = data.data;
     }
@@ -172,11 +177,15 @@ const ProductosModule = {
     );
 
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch(
         isEdit ? `/api/productos/${id}` : "/api/productos",
         {
           method: isEdit ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({ nombre, modelo, id_marca, id_categoria }),
         },
       );
@@ -209,9 +218,13 @@ const ProductosModule = {
     const nuevo = estado === "ACTIVO" ? "INACTIVO" : "ACTIVO";
 
     try {
+      const token = localStorage.getItem("token");
       await fetch(`/api/productos/${id}/estado`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ estado: nuevo }),
       });
 
