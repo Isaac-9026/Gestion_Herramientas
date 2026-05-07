@@ -1,6 +1,7 @@
 const express = require("express");
 const db = require("../config/db");
 
+
 function createCatalogRouter({ table, idField, label }) {
   const router = express.Router();
 
@@ -23,6 +24,10 @@ function createCatalogRouter({ table, idField, label }) {
       });
     }
   });
+
+  
+const authMiddleware = require("../middlewares/auth.middleware");
+router.use(authMiddleware);
 
   //LISTAR ACTIVOS
   router.get("/activos", async (req, res) => {

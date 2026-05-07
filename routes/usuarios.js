@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 const bcrypt = require("bcrypt");
+const authMiddleware = require("../middlewares/auth.middleware");
+router.use(authMiddleware);
+
 
 //listar a los usuarios registrados
 router.get("/", async (req, res) => {

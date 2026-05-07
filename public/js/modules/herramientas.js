@@ -81,49 +81,78 @@ const HerramientasModule = {
     }
   },
 
-  async _savePrestamoRapido() {
-    const id_persona = document.getElementById("rpPersona").value;
-    const motivo = document.getElementById("rpMotivo").value;
-    const fecha_limite = document.getElementById("rpFechaLimite").value;
+async _savePrestamoRapido() {
 
-    if (!id_persona) {
-      return alert("Seleccione persona");
+  const id_persona   = document.getElementById("rpPersona").value;
+  const motivo       = document.getElementById("rpMotivo").value.trim();
+  const fecha_limite = document.getElementById("rpFechaLimite").value;
+
+  if (!id_persona) {
+    return showToast("Seleccione una persona", "warning");
+  }
+
+  if (!fecha_limite) {
+    return showToast("Seleccione fecha límite", "warning");
+  }
+
+  if (!this.herramientaSeleccionada) {
+    return showToast("No hay herramienta seleccionada", "error");
+  }
+
+  try {
+
+    setLoading(
+      "btnSavePrestamoRapido",
+      "btnSavePrestamoRapidoText",
+      "btnSavePrestamoRapidoSpinner",
+      true
+    );
+
+    const token = localStorage.getItem("token");
+
+    const res = await fetch("/api/prestamos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        id_persona: Number(id_persona),
+        motivo,
+        fecha_limite,
+        herramientas: [
+          this.herramientaSeleccionada.id_herramienta
+        ],
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      throw new Error(data.message || "No se pudo registrar el préstamo");
     }
 
-    if (!fecha_limite) {
-      return alert("Seleccione fecha límite");
-    }
+    showToast("Préstamo registrado correctamente", "success");
 
-    try {
-      const res = await fetch("/api/prestamos", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id_persona: Number(id_persona),
-          id_usuario_despachador: 1,
-          motivo,
-          fecha_limite,
-          herramientas: [this.herramientaSeleccionada.id_herramienta],
-        }),
-      });
+    closeOverlay("modalPrestamoRapido");
 
-      const data = await res.json();
+    await this.load();
 
-      if (!data.success) {
-        throw new Error(data.message);
-      }
+  } catch (e) {
 
-      alert("Préstamo registrado");
+    showToast(e.message, "error");
 
-      closeOverlay("modalPrestamoRapido");
+  } finally {
 
-      await this.load();
-    } catch (e) {
-      alert("Error: " + e.message);
-    }
-  },
+    setLoading(
+      "btnSavePrestamoRapido",
+      "btnSavePrestamoRapidoText",
+      "btnSavePrestamoRapidoSpinner",
+      false
+    );
+
+  }
+},
 
   _fillProductos(selected = "") {
     const sel = document.getElementById("hProducto");

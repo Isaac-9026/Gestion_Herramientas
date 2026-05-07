@@ -277,61 +277,69 @@ const PrestamosModule = {
     this._renderLista();
   },
 
-  async _savePrestamo() {
-    const persona = document.getElementById("pPersona").value;
-    const motivo = document.getElementById("pMotivo").value;
-    const fecha_limite = document.getElementById("pFechaLimite").value;
+async _savePrestamo() {
+  const persona = document.getElementById("pPersona").value;
+  const motivo = document.getElementById("pMotivo").value;
+  const fecha_limite = document.getElementById("pFechaLimite").value;
 
-    clearErrors(["pFechaLimite"]);
+  clearErrors(["pFechaLimite"]);
 
-    if (!fecha_limite) {
-      setError(
-        "pFechaLimite",
-        "err-pFechaLimite",
-        "La fecha límite es obligatoria",
-      );
-      return;
-    }
+  if (!fecha_limite) {
+    setError(
+      "pFechaLimite",
+      "err-pFechaLimite",
+      "La fecha límite es obligatoria",
+    );
+    return;
+  }
 
-    if (!persona) return showToast("Selecciona persona", "error");
-    if (!this.prestamoActual.herramientas.length)
-      return showToast("Agrega herramientas", "error");
+  if (!persona) {
+    return showToast("Selecciona persona", "error");
+  }
+
+  if (!this.prestamoActual.herramientas.length) {
+    return showToast("Agrega herramientas", "error");
+  }
+
+  setLoading(
+    "btnSavePrestamo",
+    "btnSavePrestamoText",
+    "btnSavePrestamoSpinner",
+    true,
+  );
+
+  try {
+
+    await http("/api/prestamos", "POST", {
+      id_persona: Number(persona),
+      motivo,
+      fecha_limite,
+      herramientas: this.prestamoActual.herramientas.map(
+        (h) => h.id_herramienta,
+      ),
+    });
+
+    showToast("Préstamo creado correctamente", "success");
+
+    closeOverlay("modalPrestamo");
+
+    await this.load();
+
+  } catch (e) {
+
+    showToast(e.message, "error");
+
+  } finally {
 
     setLoading(
       "btnSavePrestamo",
       "btnSavePrestamoText",
       "btnSavePrestamoSpinner",
-      true,
+      false,
     );
 
-    try {
-      await http("/api/prestamos", "POST", {
-        id_persona: persona,
-        id_usuario_despachador: 1,
-        motivo,
-        fecha_limite,
-        herramientas: this.prestamoActual.herramientas.map(
-          (h) => h.id_herramienta,
-        ),
-      });
-
-      showToast("Préstamo creado correctamente", "success");
-
-      closeOverlay("modalPrestamo");
-
-      await this.load();
-    } catch (e) {
-      showToast(e.message, "error");
-    } finally {
-      setLoading(
-        "btnSavePrestamo",
-        "btnSavePrestamoText",
-        "btnSavePrestamoSpinner",
-        false,
-      );
-    }
-  },
-
+  }
+},
   //VER DETALLE DEL PRÉSTAMO
   async openDetalle(id) {
     const tbody = document.getElementById("bodyDetallePrestamo");
@@ -446,47 +454,54 @@ const PrestamosModule = {
   },
 
   async _saveDevolucion() {
-    const id = document.getElementById("devIdDetalle").value;
-    const estado = document.getElementById("devEstado").value;
-    const obs = document.getElementById("devObs").value.trim();
+  const id = document.getElementById("devIdDetalle").value;
+  const estado = document.getElementById("devEstado").value;
+  const obs = document.getElementById("devObs").value.trim();
 
-    clearErrors(["devEstado"]);
+  clearErrors(["devEstado"]);
 
-    if (!estado) {
-      setError("devEstado", "err-devEstado", "Selecciona un estado");
-      return;
-    }
+  if (!estado) {
+    setError("devEstado", "err-devEstado", "Selecciona un estado");
+    return;
+  }
+
+  setLoading(
+    "btnSaveDevolucion",
+    "btnSaveDevText",
+    "btnSaveDevSpinner",
+    true,
+  );
+
+  try {
+
+    await http(`/api/prestamos/devolver/${id}`, "PUT", {
+      estado_devolucion: estado,
+      observaciones: obs || null,
+    });
+
+    showToast("Devolución registrada correctamente", "success");
+
+    closeOverlay("modalDevolucion");
+
+    await this.load();
+
+    closeOverlay("modalDetallePrestamo");
+
+  } catch (e) {
+
+    showToast(e.message, "error");
+
+  } finally {
 
     setLoading(
       "btnSaveDevolucion",
       "btnSaveDevText",
       "btnSaveDevSpinner",
-      true,
+      false,
     );
 
-    try {
-      await http(`/api/prestamos/devolver/${id}`, "PUT", {
-        estado_devolucion: estado,
-        observaciones: obs || null,
-        id_usuario_receptor: 1,
-      });
-
-      showToast("Devolución registrada correctamente", "success");
-
-      closeOverlay("modalDevolucion");
-      await this.load();
-      closeOverlay("modalDetallePrestamo");
-    } catch (e) {
-      showToast(e.message, "error");
-    } finally {
-      setLoading(
-        "btnSaveDevolucion",
-        "btnSaveDevText",
-        "btnSaveDevSpinner",
-        false,
-      );
-    }
-  },
+  }
+},
 
   //ELIMINAR
   confirmDel(id) {

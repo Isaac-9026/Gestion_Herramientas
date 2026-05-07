@@ -9,16 +9,31 @@
 
 'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
-  const token = localStorage.getItem('token');
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const token = localStorage.getItem("token");
+
   if (!token) {
-    window.location.href = '/login.html';
+    window.location.href = "/login.html";
     return;
   }
 
-  DeleteModal.render();
-  Router.init();
-  Router.navigateTo('dashboard');
+  try {
+
+    await http("/api/auth/me");
+
+    DeleteModal.render();
+
+    Router.init();
+
+    Router.navigateTo("dashboard");
+
+  } catch (err) {
+
+    logout();
+
+  }
+
 });
 
 /* ════════════════════════════════════════════

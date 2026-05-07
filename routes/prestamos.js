@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
+const authMiddleware = require("../middlewares/auth.middleware");
+router.use(authMiddleware);
 
 //obtner todos los prestamos
 router.get("/", async (req, res) => {

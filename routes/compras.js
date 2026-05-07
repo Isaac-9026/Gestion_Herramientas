@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
+const authMiddleware = require("../middlewares/auth.middleware");
+router.use(authMiddleware);
+
 
 /*get /opciones  para provedores y productos activos para llenar selects */
 router.get("/opciones", async (req, res) => {
