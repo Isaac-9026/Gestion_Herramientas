@@ -74,15 +74,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
     FOREIGN KEY (updated_by) REFERENCES usuarios (id_usuario)
 ) ENGINE = InnoDB;
 
-UPDATE usuarios
-SET password_hash = '$2b$10$WlCdCXQJ/MwM6MkkRCSl5e.7sanvHYr9ugIoQiV2/FYeUQFp2FEum'
-WHERE username = 'admin';
-
-
 CREATE TABLE IF NOT EXISTS productos (
     id_producto INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(150) NOT NULL,
     modelo VARCHAR(100),
+    estado ENUM('ACTIVO', 'INACTIVO') DEFAULT 'ACTIVO',
     id_marca INT,
     id_categoria INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -90,8 +86,6 @@ CREATE TABLE IF NOT EXISTS productos (
     FOREIGN KEY (id_categoria) REFERENCES categorias (id_categoria)
 ) ENGINE = InnoDB;
 
-ALTER TABLE productos 
-ADD estado ENUM('ACTIVO', 'INACTIVO') DEFAULT 'ACTIVO';
 
 CREATE TABLE IF NOT EXISTS proveedores (
     id_proveedor INT AUTO_INCREMENT PRIMARY KEY,
@@ -100,11 +94,10 @@ CREATE TABLE IF NOT EXISTS proveedores (
     contacto VARCHAR(100),
     telefono VARCHAR(20),
     direccion VARCHAR(200),
+    estado  ENUM('ACTIVO', 'INACTIVO') DEFAULT 'ACTIVO',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE = InnoDB;
 
-ALTER TABLE proveedores 
-ADD estado ENUM('ACTIVO', 'INACTIVO') DEFAULT 'ACTIVO';
 
 CREATE TABLE IF NOT EXISTS compras (
     id_compra INT AUTO_INCREMENT PRIMARY KEY,
@@ -187,6 +180,8 @@ CREATE TABLE IF NOT EXISTS detalle_prestamo (
     FOREIGN KEY (id_usuario_receptor) REFERENCES usuarios (id_usuario)
 ) ENGINE = InnoDB;
 
+
+/* REGISTROS */
 INSERT INTO marcas (nombre) VALUES ('Bosch'), ('Makita'), ('DeWalt');
 
 INSERT INTO
@@ -260,13 +255,8 @@ INSERT INTO
     personas (dni, nombres)
 VALUES ('12345678', 'Admin Sistema');
 
-INSERT INTO
-    usuarios (
-        id_persona,
-        username,
-        password_hash
-    )
-VALUES (1, 'admin', '123456');
+#MODO ADMIN
+INSERT INTO usuarios ( id_persona, username, password_hash, id_rol, activo ) VALUES ( 1, 'admin', '$2b$10$nIay/YBR2JI3uwuz5h3Yr.hokSmli/5CKcAKdo/GhTCM/mFOzKWry', 1, TRUE );
 
 INSERT INTO
     areas (nombre)

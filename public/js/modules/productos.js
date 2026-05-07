@@ -11,12 +11,20 @@ const ProductosModule = {
   },
 
   async load() {
-    const res = await fetch("/api/productos");
-    const data = await res.json();
+  const token = localStorage.getItem("token");
 
-    this.lista = data.data;
-    this._render(this.lista);
-  },
+  const res = await fetch("/api/productos", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+
+  this.lista = data.data || data.productos || data || [];
+
+  this._render(this.lista);
+},
 
   _render(lista) {
     const tbody = document.getElementById("bodyProductos");

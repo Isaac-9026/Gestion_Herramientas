@@ -2,24 +2,45 @@
 
 const ProveedoresModule = {
 
+  lista: [],
+
   async init() {
     this._bindEvents();
     await this.load();
   },
 
   async load() {
-    const res = await fetch('/api/proveedores');
-    const data = await res.json();
+    try {
+      const token = localStorage.getItem("token");
 
-    this.lista = data.data;
-    this._render(this.lista);
+      const res = await fetch('/api/proveedores', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+
+      const data = await res.json();
+
+      this.lista = data.data || data.proveedores || data || [];
+
+      this._render(this.lista);
+
+    } catch (e) {
+      console.error("Error cargando proveedores:", e);
+      this._render([]);
+    }
   },
 
-  _render(lista) {
+  _render(lista = []) {
     const tbody = document.getElementById('bodyProveedores');
 
     document.getElementById('totalProveedoresLabel').innerText =
-      `${lista.length} proveedor(es)`;
+      `${lista?.length || 0} proveedor(es)`;
+
+    if (!lista.length) {
+      tbody.innerHTML = `<tr><td colspan="6">Sin registros</td></tr>`;
+      return;
+    }
 
     tbody.innerHTML = lista.map((p, i) => `
       <tr>
@@ -51,88 +72,102 @@ const ProveedoresModule = {
   },
 
   async toggleEstado(id, estado) {
+    const token = localStorage.getItem("token");
     const nuevo = estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
 
-    await fetch(`/api/proveedores/${id}/estado`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ estado: nuevo })
-    });
+    try {
+      await fetch(`/api/proveedores/${id}/estado`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ estado: nuevo })
+      });
 
-    await this.load();
+      await this.load();
+
+    } catch (e) {
+      console.error(e);
+    }
   },
-
 
   openModal(mode = 'new', proveedor = null) {
 
-  const isEdit = mode === 'edit';
+    const isEdit = mode === 'edit';
 
-  document.getElementById('modalProveedorTitle').innerText =
-    isEdit ? 'Editar Proveedor' : 'Nuevo Proveedor';
+    document.getElementById('modalProveedorTitle').innerText =
+      isEdit ? 'Editar Proveedor' : 'Nuevo Proveedor';
 
-  document.getElementById('provId').value = isEdit ? proveedor.id_proveedor : '';
-  document.getElementById('provRuc').value = isEdit ? proveedor.ruc : '';
-  document.getElementById('provNombre').value = isEdit ? proveedor.razon_social : '';
-  document.getElementById('provContacto').value = isEdit ? proveedor.contacto || '' : '';
-  document.getElementById('provTelefono').value = isEdit ? proveedor.telefono || '' : '';
-  document.getElementById('provDireccion').value = isEdit ? proveedor.direccion || '' : '';
+    document.getElementById('provId').value = isEdit ? proveedor.id_proveedor : '';
+    document.getElementById('provRuc').value = isEdit ? proveedor.ruc : '';
+    document.getElementById('provNombre').value = isEdit ? proveedor.razon_social : '';
+    document.getElementById('provContacto').value = isEdit ? proveedor.contacto || '' : '';
+    document.getElementById('provTelefono').value = isEdit ? proveedor.telefono || '' : '';
+    document.getElementById('provDireccion').value = isEdit ? proveedor.direccion || '' : '';
 
-  openOverlay('modalProveedorOverlay');
-},
-openEdit(id) {
-  const proveedor = this.lista.find(p => p.id_proveedor === id);
-  if (!proveedor) return;
+    openOverlay('modalProveedorOverlay');
+  },
 
-  this.openModal('edit', proveedor);
-},
-async save() {
+  openEdit(id) {
+    const proveedor = this.lista.find(p => p.id_proveedor === id);
+    if (!proveedor) return;
 
-  const id = document.getElementById('provId').value;
+    this.openModal('edit', proveedor);
+  },
 
-  const payload = {
-    ruc: document.getElementById('provRuc').value.trim(),
-    razon_social: document.getElementById('provNombre').value.trim(),
-    contacto: document.getElementById('provContacto').value.trim(),
-    telefono: document.getElementById('provTelefono').value.trim(),
-    direccion: document.getElementById('provDireccion').value.trim(),
-  };
+  async save() {
 
-  if (!payload.ruc || payload.ruc.length !== 11) {
-    return alert("RUC inválido");
-  }
+    const id = document.getElementById('provId').value;
 
-  if (!payload.razon_social) {
-    return alert("Razón social obligatoria");
-  }
+    const payload = {
+      ruc: document.getElementById('provRuc').value.trim(),
+      razon_social: document.getElementById('provNombre').value.trim(),
+      contacto: document.getElementById('provContacto').value.trim(),
+      telefono: document.getElementById('provTelefono').value.trim(),
+      direccion: document.getElementById('provDireccion').value.trim(),
+    };
 
-  try {
+    if (!payload.ruc || payload.ruc.length !== 11) {
+      return alert("RUC inválido");
+    }
 
-    await fetch(id ? `/api/proveedores/${id}` : `/api/proveedores`, {
-      method: id ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    if (!payload.razon_social) {
+      return alert("Razón social obligatoria");
+    }
 
-    closeOverlay('modalProveedorOverlay');
-    await this.load();
+    try {
+      const token = localStorage.getItem("token");
 
-  } catch (e) {
-    console.error(e);
-  }
-},
+      await fetch(id ? `/api/proveedores/${id}` : `/api/proveedores`, {
+        method: id ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload)
+      });
+
+      closeOverlay('modalProveedorOverlay');
+      await this.load();
+
+    } catch (e) {
+      console.error(e);
+    }
+  },
 
   _bindEvents() {
 
-  document.getElementById('btnNuevoProveedor')
-    ?.addEventListener('click', () => this.openModal());
+    document.getElementById('btnNuevoProveedor')
+      ?.addEventListener('click', () => this.openModal());
 
-  document.getElementById('btnSaveProveedor')
-    ?.addEventListener('click', () => this.save());
+    document.getElementById('btnSaveProveedor')
+      ?.addEventListener('click', () => this.save());
 
-  document.getElementById('btnCancelProveedor')
-    ?.addEventListener('click', () => closeOverlay('modalProveedorOverlay'));
+    document.getElementById('btnCancelProveedor')
+      ?.addEventListener('click', () => closeOverlay('modalProveedorOverlay'));
 
-  document.getElementById('btnCloseProveedor')
-    ?.addEventListener('click', () => closeOverlay('modalProveedorOverlay'));
-}
+    document.getElementById('btnCloseProveedor')
+      ?.addEventListener('click', () => closeOverlay('modalProveedorOverlay'));
+  }
 };
