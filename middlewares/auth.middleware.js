@@ -3,16 +3,22 @@ const jwt = require("jsonwebtoken");
 function authMiddleware(req, res, next) {
   try {
 
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization || "";
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    const tokenQuery = req.query.token;
+
+    const tokenHeader =
+      authHeader.startsWith("Bearer ")
+        ? authHeader.split(" ")[1]
+        : null;
+    const token = tokenQuery || tokenHeader;
+
+    if (!token) {
       return res.status(401).json({
         success: false,
         message: "No autorizado",
       });
     }
-
-    const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 

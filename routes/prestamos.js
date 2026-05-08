@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
+const PDFDocument = require("pdfkit");
 const authMiddleware = require("../middlewares/auth.middleware");
 router.use(authMiddleware);
 
@@ -95,6 +96,220 @@ router.get("/:id", async (req, res) => {
       error: err.message,
     });
   }
+});
+
+//OBTNER REPORTE PDF
+router.get("/:id/pdf", async (req, res) => {
+
+  try {
+
+    const id = req.params.id;
+
+    // PRÉSTAMO
+    const [prestamoRows] = await db.query(`
+      SELECT
+        p.id_prestamo,
+        p.fecha_salida,
+        p.fecha_limite,
+        p.motivo,
+        p.estado_prestamo,
+
+        per.nombres AS persona,
+        per.dni,
+
+        u.username,
+        perUser.nombres AS despachador
+
+      FROM prestamos p
+
+      INNER JOIN personas per
+        ON p.id_persona = per.id_persona
+
+      INNER JOIN usuarios u
+        ON p.id_usuario_despachador = u.id_usuario
+
+      INNER JOIN personas perUser
+        ON u.id_persona = perUser.id_persona
+
+      WHERE p.id_prestamo = ?
+    `, [id]);
+
+    if (prestamoRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Préstamo no encontrado"
+      });
+    }
+
+    const prestamo = prestamoRows[0];
+
+    // DETALLE
+    const [detalle] = await db.query(`
+      SELECT
+        h.codigo_inventario,
+        pr.nombre AS producto,
+        dp.estado_entrega
+      FROM detalle_prestamo dp
+
+      INNER JOIN herramientas h
+        ON dp.id_herramienta = h.id_herramienta
+
+      INNER JOIN productos pr
+        ON h.id_producto = pr.id_producto
+
+      WHERE dp.id_prestamo = ?
+    `, [id]);
+
+    //PDF
+    const doc = new PDFDocument({
+      margin: 50,
+      size: "A4"
+    });
+
+    //headers
+    res.setHeader(
+      "Content-Type",
+      "application/pdf"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename=prestamo-${id}.pdf`
+    );
+
+    doc.pipe(res);
+
+    //TITULO
+    doc
+      .fontSize(20)
+      .text("COMPROBANTE DE PRÉSTAMO", {
+        align: "center"
+      });
+
+    doc.moveDown(2);
+
+    // DATOS
+    doc
+      .fontSize(11)
+      .text(`Folio: PR-${String(prestamo.id_prestamo).padStart(5, "0")}`);
+
+    doc.text(`Fecha préstamo: ${
+      new Date(prestamo.fecha_salida).toLocaleString()
+    }`);
+
+    doc.text(`Fecha límite: ${
+      prestamo.fecha_limite
+        ? new Date(prestamo.fecha_limite).toLocaleDateString()
+        : "-"
+    }`);
+
+    doc.moveDown();
+
+    doc.text(`Empleado: ${prestamo.persona}`);
+    doc.text(`DNI: ${prestamo.dni || "-"}`);
+
+    doc.moveDown();
+
+    doc.text(`Despachador: ${prestamo.despachador}`);
+    doc.text(`Usuario sistema: ${prestamo.username}`);
+
+    doc.moveDown();
+
+    doc.text(`Motivo: ${prestamo.motivo || "-"}`);
+
+    doc.moveDown(2);
+
+    // TABLA
+    doc
+      .fontSize(13)
+      .text("Herramientas entregadas");
+
+    doc.moveDown();
+
+    const tableTop = doc.y;
+
+    doc.fontSize(10);
+
+    doc.text("#", 50, tableTop);
+    doc.text("Código", 90, tableTop);
+    doc.text("Herramienta", 220, tableTop);
+    doc.text("Estado", 450, tableTop);
+
+    let y = tableTop + 25;
+
+    detalle.forEach((item, index) => {
+
+      doc.text(index + 1, 50, y);
+
+      doc.text(item.codigo_inventario, 90, y);
+
+      doc.text(item.producto, 220, y, {
+        width: 200
+      });
+
+      doc.text(item.estado_entrega, 450, y);
+
+      y += 25;
+    });
+
+    // línea
+    doc
+      .moveTo(50, y)
+      .lineTo(550, y)
+      .stroke();
+
+    y += 60;
+
+    // FIRMAS
+    doc.text(
+      "________________________",
+      70,
+      y
+    );
+
+    doc.text(
+      "Firma Responsable",
+      95,
+      y + 20
+    );
+
+    doc.text(
+      "________________________",
+      330,
+      y
+    );
+
+    doc.text(
+      "Firma Despachador",
+      355,
+      y + 20
+    );
+
+    //footer
+    doc.moveDown(6);
+
+    doc
+      .fontSize(9)
+      .fillColor("gray")
+      .text(
+        "Documento generado automáticamente por el Sistema",
+        {
+          align: "center"
+        }
+      );
+
+    doc.end();
+
+  } catch (err) {
+
+    res.status(500).json({
+      success: false,
+      message: "Error al generar PDF",
+      error: err.message
+    });
+
+  }
+
 });
 
 //para crear el prestamo
