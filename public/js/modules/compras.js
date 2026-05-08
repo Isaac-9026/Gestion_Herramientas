@@ -14,7 +14,12 @@ const ComprasModule = {
 
   async _loadOptions() {
     try {
-      const res = await fetch("/api/compras/opciones");
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/compras/opciones", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const json = await res.json();
 
       this.proveedores = json.data.proveedores || [];
@@ -65,7 +70,12 @@ const ComprasModule = {
       `<tr><td colspan="8" class="text-center py-5"><div class="spinner-custom"></div></td></tr>`;
 
     try {
-      const res = await fetch("/api/compras");
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/compras", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const json = await res.json();
 
       this.lista = json.data || [];
@@ -277,9 +287,13 @@ const ComprasModule = {
     );
 
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch("/api/compras", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -309,7 +323,12 @@ const ComprasModule = {
       `<tr><td colspan="5" class="text-center py-4"><div class="spinner-custom"></div></td></tr>`;
 
     try {
-      const res = await fetch(`/api/compras/${id}`);
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/compras/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const json = await res.json();
 
       if (!json.success) {
