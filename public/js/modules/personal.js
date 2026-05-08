@@ -12,7 +12,12 @@ const PersonalModule = {
 
   async _loadAreas() {
     try {
-      const res = await fetch("/api/areas");
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/areas", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
       const data = await res.json();
       this.areas = data.data || [];
       this._fillAreas();
@@ -44,7 +49,12 @@ const PersonalModule = {
       `<tr><td colspan="7" class="text-center py-5"><div class="spinner-custom"></div></td></tr>`;
 
     try {
-      const res = await fetch("/api/empleados");
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/empleados", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
 
       this.lista = data.data || [];
@@ -267,10 +277,13 @@ const PersonalModule = {
     try {
       const url = isEdit ? `/api/empleados/${id}` : "/api/empleados";
       const method = isEdit ? "PUT" : "POST";
-
+      const token = localStorage.getItem("token");
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(body),
       });
 
@@ -303,8 +316,12 @@ const PersonalModule = {
   confirmDel(id, name) {
     DeleteModal.open("personal", id, name, async () => {
       try {
+        const token = localStorage.getItem("token");
         const res = await fetch(`/api/empleados/inactivar/${id}`, {
           method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         const json = await res.json();
